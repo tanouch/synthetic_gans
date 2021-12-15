@@ -1,0 +1,177 @@
+from my_imports import *
+
+#from MST import find_MST, plot_MST, plot_TSP, get_dataset_mnist, get_projections_mnist, plot_MST_mnist, plot_MST_networkx, \
+#    plot_TSP_notclosed, plot_TSP_quadratic
+from generating_data import create_mixture_gaussian_dataset, rank_by_discriminator
+from plotting_functions import plot_gradient_of_the_generator, plot_mnist_ranked_images, plot_mnist_dataset, plot_densities, \
+    plot_gradient_of_the_discriminator, plot_heatmap_of_the_discriminator, plot_in_between_modes, \
+    plot_mnist_last_ranked_images, plot_in_between_modes_MST, plot_heatmap_nearest_point, \
+    plot_heatmap_of_the_importance_weights, plot_densities_iw, plot_densities_middle_points
+from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Classifier_mnist, Generator_mnist, Discriminator_mnist, Importance_weighter
+from getting_pr_score import get_pr_scores, hausdorff_estimate_interpolation
+from tools import convert_to_gpu, get_path, get_all_interpolations_MST, weights_init
+from training_utils import train_discriminator, train_generator, train_importance_weighter, train_discriminator_with_importance_weights, save_models
+
+np.random.seed(10)
+torch.manual_seed(10)
+
+def get_config():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--name_exp', type=str, default="default_exp")
+    parser.add_argument('--dataset', default='synthetic', type=str)
+    parser.add_argument("--device_id", type = int,  default = 0)
+    parser.add_argument('-b', '--batch_size', type=int, default=256)
+    parser.add_argument("--use_gpu", action='store_true', help='shuffle input data')
+    parser.add_argument("--spectral_normalization", action='store_true', help='shuffle input data')
+    parser.add_argument("--spectral_normalization_iw", default=False, type=bool)
+    parser.add_argument("--batch_norm_real_data", default=False, type=bool, help='batch norm input data')
+    parser.add_argument('--steps_gan', type=int, default=20001)
+    parser.add_argument('--steps_eval', type=int, default=1000)
+    
+    parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
+    parser.add_argument("--gen_type", type = str, default='simple')
+    parser.add_argument("--disc_type", type = str, default='simpleReLU')
+    parser.add_argument("--gen_lr", type = float, default=0.001)
+    parser.add_argument("--disc_lr", type = float, default=0.0025)
+    parser.add_argument("--iw_lr", type = float, default=0.001)
+    parser.add_argument("--iw_regul_weight", type = float, default=2.)
+    parser.add_argument('--d_step', type=int, default=3)
+    parser.add_argument('--g_step', type=int, default=1)
+    parser.add_argument('--g_width', type=int, default=30)
+    parser.add_argument('--d_width', type=int, default=30)
+    parser.add_argument('--g_depth', type=int, default=2)
+    parser.add_argument('--d_depth', type=int, default=5)
+    
+    #TRAINING
+    #training_mode: do we define a training dataset (training) or we always sample from mu_star (test) ?? 
+    parser.add_argument('--training_mode', type=str, default = "training")
+    #testing_mode: we want to sample from mu_star so "test". 
+    parser.add_argument('--testing_mode', type=str, default = "test")
+    #what metrics do we want to report ?
+    parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd', type=str)
+    parser.add_argument('--plot_config', default = True, type=bool)
+    parser.add_argument('--num_runs', default=1, type=int)
+    parser.add_argument('--num_points_plotted', type=int, default=750)
+
+    #TRUE DIST
+    #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes) 
+    parser.add_argument('--real_dataset_size', type=int, default=1)
+    parser.add_argument('--output_dim', type=int, default=2)
+    parser.add_argument('--output_modes_locs', default = 2, type=float)
+    parser.add_argument('--output_modes', type=int, default=1)
+    #variance of each mode of the Gaussian mixture
+    parser.add_argument('--out_var', type=float, default=0.1)
+    #dim of the latent space
+    parser.add_argument('--z_dim', type=int, default=1)
+    #law of the latent random variable
+    parser.add_argument("--z_law", type = str, default = 'unif')
+    #variance of the latent random variable
+    parser.add_argument('--z_var', type=float, default=1.0)
+
+    #KNN !!!!!
+    #num_points to compute the the metrics: usually 2048...
+    parser.add_argument('--num_points_sampled_knn', type=int, default=1024)
+    #threshold to compute nearest_neighbors
+    parser.add_argument('--kth_nearests', type=str, default='2')
+    #num_runs to compute the confidence intervals for the metrics: usually 5...
+    parser.add_argument('--num_runs_knn', default=5, type=int)
+    parser.add_argument('--batch_size_knn', type=int, default=1024)
+    
+    opt = parser.parse_args()
+    opt.kth_nearests = [int(item) for item in opt.kth_nearests.split(',')]
+    opt.metrics = [item for item in opt.metrics.split(',')]
+    opt.num_pics = 0
+    return opt
+
+config = get_config()
+config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
+print(config, flush = True)
+if config.output_modes != config.real_dataset_size:
+    print("Careful, real_dataset_size different from output_modes")
+
+if not os.path.exists(config.name_exp):
+    os.makedirs(config.name_exp)
+
+if config.dataset == 'synthetic':
+    loc = config.output_modes_locs
+    if config.output_modes == 1:
+        config.means_mixture = [[0, 0]]
+    elif config.output_modes == 3:
+        config.means_mixture = [[0, loc], [-loc, 0], [loc, 0]]
+    elif config.output_modes == 4:
+        config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc]]
+    elif config.output_modes == 5:
+        config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc], [0,0]]
+    elif config.output_modes == 6:
+        config.means_mixture = [[-1, 1], [1, 1], [2, 0], [1, -1], [-1, -1], [-2, 0]]
+    elif config.output_modes == 7:
+        config.means_mixture = [[-1*loc, 1*loc], [-0.7*loc, 1], [-1*loc, -1*loc], [1*loc, -1*loc], [0.7*loc, 1], [1*loc, 1*loc], [0,-1]]
+    elif config.output_modes == 9:
+        config.means_mixture = [[-1*loc, 1*loc],[0*loc, 1*loc],[1*loc, 1*loc],[-1*loc, 0*loc],[0*loc, 0*loc],[1*loc, 0*loc], [-1*loc, -1*loc], [0*loc, -1*loc], [1*loc, -1*loc]]
+    elif config.output_modes == 16:
+        config.means_mixture = [[-1*loc, -2*loc], [-1*loc, -1*loc], [-1*loc, 0], [-1*loc, 1*loc], \
+                                [0, -2*loc], [0, -1*loc], [0, 0], [0, 1*loc], \
+                                [1*loc, -2*loc], [1*loc, -1*loc], [1*loc, 0], [1*loc, 1*loc], \
+                                [2*loc, -2*loc], [2*loc, -1*loc], [2*loc, 0], [2*loc, 1*loc]]
+    else:
+        config.means_mixture = [(np.random.rand(config.output_dim) - 0.5)*loc for i in range(config.output_modes)]
+    weights = np.ones(config.output_modes)
+    config.weights_mixture = weights/np.sum(weights)
+    if config.training_mode=="training":
+        config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
+        
+else:
+    print("Not the right dataset")
+    sys.exit()
+
+print("")
+print("Starting training of GAN!")
+if config.gen_type=="simple":
+    generator = convert_to_gpu(Generator(config), config)
+else:
+    generator = convert_to_gpu(Generator_mnist(config), config)
+
+if config.disc_type=="simpleReLU":
+    discriminator = convert_to_gpu(Discriminator(config), config)
+elif config.disc_type=="mnist": 
+    discriminator = convert_to_gpu(Discriminator_mnist(config), config)
+else:
+    discriminator = convert_to_gpu(Discriminator_bjorckGroupSort(config), config)
+
+generator.train()
+g_optimizer = torch.optim.Adam(generator.parameters(), lr=config.gen_lr, betas=(0.5,0.5))
+discriminator.train()
+d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=config.disc_lr, betas=(0.5,0.5))
+
+def get_scores_and_plot_graphs(metrics, generator, metric_score, mode, config):
+    print("")
+    print(metric_score, mode)
+    dict_scores = get_pr_scores(metrics, config, generator, metric_score, mode)
+    for metric in config.metrics:
+        print(metric, dict_scores[metric])
+
+for s in range(config.steps_gan):
+    for d in range(config.d_step):
+        train_discriminator(discriminator, generator, d_optimizer, s, config)
+    for g in range(config.g_step):
+        train_generator(discriminator, generator, g_optimizer, s, config)
+    
+    if s%config.steps_eval == 0 and s!= 0 :
+        print('Steps', s)
+        save_models(generator, s, "generator", config)
+        save_models(discriminator, s, "discriminator", config)
+
+        if config.dataset == 'synthetic':
+            get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, config=config)
+            plot_densities(config, generator)
+            plot_densities_middle_points(config, generator)
+            if (config.z_dim==2) or (config.z_dim==1):
+                plot_heatmap_nearest_point(generator, config)
+                plot_gradient_of_the_generator(generator, config)
+            if (config.z_dim==2):
+                plot_heatmap_of_the_discriminator(discriminator, config)
+
+        config.num_pics += 1
+        print('____________________')
+
+print("#######################")
