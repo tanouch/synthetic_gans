@@ -1,21 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init, Parameter
-import os
-import functools
-from torch.nn.utils import spectral_norm
-from torch.optim.optimizer import Optimizer, required
-from torch.autograd import Variable
-from torch import Tensor
-from torch.nn import Parameter
-from torch.distributions import uniform, categorical
-from tools import convert_to_gpu
-
+from my_imports import *
 from maths.projections import *
 from maths.projections import bjorck_orthonormalize, get_safe_bjorck_scaling
+from tools import convert_to_gpu
 
 
 class DenseLinear(nn.Module):

@@ -1,9 +1,6 @@
 from my_imports import *
-from scipy.spatial import distance_matrix
-
 from tools import convert_to_gpu, movingaverage
 from generating_data import generate_z, generate_real_data, rank_by_gradients, rank_by_discriminator
-from MST import find_MST, find_MST_networkx
 
 def generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim):
     Z = []

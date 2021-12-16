@@ -1,16 +1,13 @@
 from my_imports import *
-
-#from MST import find_MST, plot_MST, plot_TSP, get_dataset_mnist, get_projections_mnist, plot_MST_mnist, plot_MST_networkx, \
-#    plot_TSP_notclosed, plot_TSP_quadratic
 from generating_data import create_mixture_gaussian_dataset, rank_by_discriminator
 from plotting_functions import plot_gradient_of_the_generator, plot_mnist_ranked_images, plot_mnist_dataset, plot_densities, \
     plot_gradient_of_the_discriminator, plot_heatmap_of_the_discriminator, plot_in_between_modes, \
     plot_mnist_last_ranked_images, plot_in_between_modes_MST, plot_heatmap_nearest_point, \
     plot_heatmap_of_the_importance_weights, plot_densities_iw, plot_densities_middle_points
-from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Classifier_mnist, Generator_mnist, Discriminator_mnist, Importance_weighter
-from getting_pr_score import get_pr_scores, hausdorff_estimate_interpolation
-from tools import convert_to_gpu, get_path, get_all_interpolations_MST, weights_init
-from training_utils import train_discriminator, train_generator, train_importance_weighter, train_discriminator_with_importance_weights, save_models
+from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Classifier_mnist, Generator_mnist, Discriminator_mnist
+from getting_pr_score import get_pr_scores
+from tools import convert_to_gpu
+from training_utils import train_discriminator, train_generator, save_models
 
 np.random.seed(10)
 torch.manual_seed(10)
