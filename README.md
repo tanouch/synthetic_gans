@@ -28,5 +28,5 @@ Base of the code for the following publications:<br />
 
 
 ## Examples of some command runs:
-To train a 
+To train a WGANs on 4 data points, just run:
 python synthetic_gans/main.py --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu 
