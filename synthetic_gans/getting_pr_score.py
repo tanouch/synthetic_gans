@@ -1,22 +1,4 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.nn import init, Parameter
-from torch.nn.utils import spectral_norm
-from torch.optim.optimizer import Optimizer, required
-from torch.autograd import Variable
-from torch import Tensor
-import math
-import os
-import functools
-from itertools import product
-from scipy.stats import norm
-import math
-import ot
-from scipy import linalg
-
+from my_imports import *
 from tools import convert_to_gpu
 from generating_data import generate_z, generate_real_data, rank_by_discriminator
 

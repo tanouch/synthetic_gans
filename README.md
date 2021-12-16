@@ -4,6 +4,10 @@ Base of the code for the following publications:<br />
 - Some Theoretical Insights into Wasserstein GANs (https://arxiv.org/abs/2006.02682).<br />
 - Approximating Lipschitz continuous functions with GroupSort neural networks (https://arxiv.org/abs/2006.05254).<br />
 
+### How to run it ??
+1) Run install.sh
+2) Activate venv with source venv/bin/activate
+
 ### Main parameters
 --loss_type: wgan-gp, hinge, vanilla, relativistic. Default: wgan-gp.<br />
 --gen_type: 'simple'.<br />
