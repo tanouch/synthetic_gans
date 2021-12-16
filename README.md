@@ -4,11 +4,11 @@ Base of the code for the following publications:<br />
 - Some Theoretical Insights into Wasserstein GANs (https://arxiv.org/abs/2006.02682).<br />
 - Approximating Lipschitz continuous functions with GroupSort neural networks (https://arxiv.org/abs/2006.05254).<br />
 
-
-## Main parameters
+### Main parameters
 --loss_type: wgan-gp, hinge, vanilla, relativistic. Default: wgan-gp.<br />
 --gen_type: 'simple'.<br />
 --disc_type: 'simpleReLU' (ReLU networks), 'bjorckGroupSort' (as defined in https://arxiv.org/abs/1811.05381). Default: simpleReLU.<br />
+--use-gpu (significant speed-up) if you have access to one.
 
 ### Others
 --gen_lr, type = float, default=0.0025. <br />
@@ -20,10 +20,13 @@ Base of the code for the following publications:<br />
 --g_depth', type=int, default=2.<br />
 --d_depth', type=int, default=5.<br />
 
-Regarding the latent distribution:
+### Regarding the latent distribution:
 --z_dim, default=1<br />
 --z_law, choices=('gauss', 'unif', 'circle'), default = 'unif'<br />
 --z_var', default=1.0<br />
 
-### Examples of some command runs: ###
+
+
+## Examples of some command runs:
+To train a 
 python synthetic_gans/main.py --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu 
