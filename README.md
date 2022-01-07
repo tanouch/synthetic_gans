@@ -29,8 +29,16 @@ Base of the code for the following publications:<br />
 --z_law, choices=('gauss', 'unif', 'circle'), default = 'unif'<br />
 --z_var, default=1.0<br />
 
-
-
 ## Examples of some command runs:
 To train a WGANs on 4 data points, just run:
-python synthetic_gans/main.py --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu 
+python synthetic_gans/main.py --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu
+
+## Implementations for real-life GANs (proposed by lucidrains on Github):
+#https://github.com/lucidrains/lightweight-gan <br />
+lightweight_gan --data ../data/celeba/celeba_2 --name celeba_2LG --aug-prob 0.25 --batch_size 16 --results_dir celeba_2LG/ --models_dir celeba_2LG/ --network-capacity 8 --num_train_steps 30001 --save_every 5000 --evaluate_every 5000 --image-size 256 <br />
+lightweight_gan --data ../data/celeba/celeba_20 --name celeba_20LG --aug-prob 0.25 --batch_size 16 --results_dir celeba_20LG/ --models_dir celeba_20LG/ --network-capacity 8 --num_train_steps 20001 --save_every 5000 --evaluate_every 5000 --image-size 256
+
+
+#https://github.com/lucidrains/stylegan2-pytorch <br />
+stylegan2_pytorch --data ../data/celeba/celeba_500 --name celeba_500 --aug-prob 0.25 --multi-gpus --batch_size 16 --results_dir celeba_500/ --models_dir celeba_500/ --network-capacity 8 --num_train_steps 50000 --save_every 5000 --evaluate_every 5000 <br />
+stylegan2_pytorch --data ../data/celeba/celeba_2 --name celeba_2 --aug-prob 0.25 --batch_size 16 --results_dir celeba_2/ --models_dir celeba_2/ --network-capacity 8 --num_train_steps 50000 --save_every 5000 --evaluate_every 5000

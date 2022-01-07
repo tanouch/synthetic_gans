@@ -102,7 +102,7 @@ if config.dataset == 'synthetic':
     elif config.output_modes == 6:
         config.means_mixture = [[-1, 1], [1, 1], [2, 0], [1, -1], [-1, -1], [-2, 0]]
     elif config.output_modes == 7:
-        config.means_mixture = [[-1*loc, 1*loc], [-0.7*loc, 1], [-1*loc, -1*loc], [1*loc, -1*loc], [0.7*loc, 1], [1*loc, 1*loc], [0,-1]]
+        config.means_mixture = [[0*loc, -1*loc], [0, 0], [0*loc, 1*loc], [1*loc, 1.5*loc], [2*loc, 2*loc], [-1*loc, 1.5*loc], [-2*loc,2*loc]]
     elif config.output_modes == 9:
         config.means_mixture = [[-1*loc, 1*loc],[0*loc, 1*loc],[1*loc, 1*loc],[-1*loc, 0*loc],[0*loc, 0*loc],[1*loc, 0*loc], [-1*loc, -1*loc], [0*loc, -1*loc], [1*loc, -1*loc]]
     elif config.output_modes == 16:
@@ -164,7 +164,7 @@ for s in range(config.steps_gan):
             plot_densities_middle_points(config, generator)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config)
-                plot_gradient_of_the_generator(generator, config)
+                plot_gradient_of_the_generator(generator, config, span_length=config.z_var)
             if (config.z_dim==2):
                 plot_heatmap_of_the_discriminator(discriminator, config)
 
