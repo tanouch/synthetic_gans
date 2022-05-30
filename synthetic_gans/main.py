@@ -9,9 +9,6 @@ from getting_pr_score import get_pr_scores
 from tools import convert_to_gpu
 from training_utils import train_discriminator, train_generator, save_models
 
-np.random.seed(10)
-torch.manual_seed(10)
-
 def get_config():
     parser = argparse.ArgumentParser()
     parser.add_argument('--name_exp', type=str, default="default_exp")
@@ -28,16 +25,17 @@ def get_config():
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
     parser.add_argument("--gen_type", type = str, default='simple')
     parser.add_argument("--disc_type", type = str, default='simpleReLU')
-    parser.add_argument("--gen_lr", type = float, default=0.001)
+    parser.add_argument("--gen_lr", type = float, default=0.0005)
     parser.add_argument("--disc_lr", type = float, default=0.0025)
     parser.add_argument("--iw_lr", type = float, default=0.001)
     parser.add_argument("--iw_regul_weight", type = float, default=2.)
-    parser.add_argument('--d_step', type=int, default=3)
+    parser.add_argument('--d_step', type=int, default=4)
     parser.add_argument('--g_step', type=int, default=1)
-    parser.add_argument('--g_width', type=int, default=30)
-    parser.add_argument('--d_width', type=int, default=30)
+    parser.add_argument('--g_width', type=int, default=125)
+    parser.add_argument('--d_width', type=int, default=120)
     parser.add_argument('--g_depth', type=int, default=2)
     parser.add_argument('--d_depth', type=int, default=5)
+    parser.add_argument('--seed', type=int, default=50)
     
     #TRAINING
     #training_mode: do we define a training dataset (training) or we always sample from mu_star (test) ?? 
@@ -48,13 +46,13 @@ def get_config():
     parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd', type=str)
     parser.add_argument('--plot_config', default = True, type=bool)
     parser.add_argument('--num_runs', default=1, type=int)
-    parser.add_argument('--num_points_plotted', type=int, default=750)
+    parser.add_argument('--num_points_plotted', type=int, default=500)
 
     #TRUE DIST
     #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes) 
     parser.add_argument('--real_dataset_size', type=int, default=1)
     parser.add_argument('--output_dim', type=int, default=2)
-    parser.add_argument('--output_modes_locs', default = 2, type=float)
+    parser.add_argument('--output_modes_locs', default = 1.5, type=float)
     parser.add_argument('--output_modes', type=int, default=1)
     #variance of each mode of the Gaussian mixture
     parser.add_argument('--out_var', type=float, default=0.1)
@@ -73,9 +71,12 @@ def get_config():
     #num_runs to compute the confidence intervals for the metrics: usually 5...
     parser.add_argument('--num_runs_knn', default=5, type=int)
     parser.add_argument('--batch_size_knn', type=int, default=1024)
+    parser.add_argument('--real_colors', type=str, default=None)
     
     opt = parser.parse_args()
     opt.kth_nearests = [int(item) for item in opt.kth_nearests.split(',')]
+    if opt.real_colors is not None:
+        opt.real_colors = [item for item in opt.real_colors.split(',')]
     opt.metrics = [item for item in opt.metrics.split(',')]
     opt.num_pics = 0
     return opt
@@ -83,6 +84,9 @@ def get_config():
 config = get_config()
 config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 print(config, flush = True)
+print(config.real_colors)
+np.random.seed(config.seed)
+torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
     print("Careful, real_dataset_size different from output_modes")
 
@@ -91,32 +95,45 @@ if not os.path.exists(config.name_exp):
 
 if config.dataset == 'synthetic':
     loc = config.output_modes_locs
-    if config.output_modes == 1:
-        config.means_mixture = [[0, 0]]
-    elif config.output_modes == 3:
-        config.means_mixture = [[0, loc], [-loc, 0], [loc, 0]]
-    elif config.output_modes == 4:
-        config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc]]
-    elif config.output_modes == 5:
-        config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc], [0,0]]
-    elif config.output_modes == 6:
-        config.means_mixture = [[-1, 1], [1, 1], [2, 0], [1, -1], [-1, -1], [-2, 0]]
-    elif config.output_modes == 7:
-        config.means_mixture = [[0*loc, -1*loc], [0, 0], [0*loc, 1*loc], [1*loc, 1.5*loc], [2*loc, 2*loc], [-1*loc, 1.5*loc], [-2*loc,2*loc]]
-    elif config.output_modes == 9:
-        config.means_mixture = [[-1*loc, 1*loc],[0*loc, 1*loc],[1*loc, 1*loc],[-1*loc, 0*loc],[0*loc, 0*loc],[1*loc, 0*loc], [-1*loc, -1*loc], [0*loc, -1*loc], [1*loc, -1*loc]]
-    elif config.output_modes == 16:
-        config.means_mixture = [[-1*loc, -2*loc], [-1*loc, -1*loc], [-1*loc, 0], [-1*loc, 1*loc], \
-                                [0, -2*loc], [0, -1*loc], [0, 0], [0, 1*loc], \
-                                [1*loc, -2*loc], [1*loc, -1*loc], [1*loc, 0], [1*loc, 1*loc], \
-                                [2*loc, -2*loc], [2*loc, -1*loc], [2*loc, 0], [2*loc, 1*loc]]
-    else:
-        config.means_mixture = [(np.random.rand(config.output_dim) - 0.5)*loc for i in range(config.output_modes)]
+    if config.output_dim==2:
+        if config.output_modes == 1:
+            config.means_mixture = [[0, 0]]
+        elif config.output_modes == 3: #triangle equilateral !
+            config.means_mixture = [[0, loc*1.732-1], [-loc, -1], [loc, -1]]
+        elif config.output_modes == 4:
+            config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc]]
+        elif config.output_modes == 5:
+            config.means_mixture = [[-1*loc, 0.5*loc], [0, 1.*loc], [1*loc, 0.5*loc], [1*loc, -0.5*loc], [-1*loc,-0.5*loc]]
+        elif config.output_modes == 6:
+            config.means_mixture = [[-1, 1], [1, 1], [2, 0], [1, -1], [-1, -1], [-2, 0]]
+        elif config.output_modes == 7:
+            config.means_mixture = [[0*loc, -1*loc], [0, 0], [0*loc, 1*loc], \
+                                    [1*loc, 1.5*loc], [2*loc, 2*loc], [-1*loc, 1.5*loc], [-2*loc,2*loc]]
+        elif config.output_modes == 9:
+            config.means_mixture = [[-1*loc, 1*loc],[0*loc, 1*loc],[1*loc, 1*loc],\
+                                    [-1*loc, 0*loc],[0*loc, 0*loc],[1*loc, 0*loc], [-1*loc, -1*loc], [0*loc, -1*loc], [1*loc, -1*loc]]
+        elif config.output_modes == 16:
+            config.means_mixture = [[-1*loc, -2*loc], [-1*loc, -1*loc], [-1*loc, 0], [-1*loc, 1*loc], \
+                                    [0, -2*loc], [0, -1*loc], [0, 0], [0, 1*loc], \
+                                    [1*loc, -2*loc], [1*loc, -1*loc], [1*loc, 0], [1*loc, 1*loc], \
+                                    [2*loc, -2*loc], [2*loc, -1*loc], [2*loc, 0], [2*loc, 1*loc]]
+        else:
+            config.means_mixture = [(np.random.rand(config.output_dim) - 0.5)*loc for i in range(config.output_modes)]
     weights = np.ones(config.output_modes)
     config.weights_mixture = weights/np.sum(weights)
     if config.training_mode=="training":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
-        
+
+if config.dataset == "synthetic_simplex":
+    config.output_dim = config.output_modes
+    modes = np.arange(config.output_modes)
+    config.means_mixture = np.zeros((modes.size, modes.max()+1))
+    config.means_mixture[np.arange(modes.size),modes] = 1
+    weights = np.ones(config.output_modes)
+    config.weights_mixture = weights/np.sum(weights)
+    if config.training_mode=="training":
+        config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
+    
 else:
     print("Not the right dataset")
     sys.exit()
@@ -158,14 +175,14 @@ for s in range(config.steps_gan):
         save_models(generator, s, "generator", config)
         save_models(discriminator, s, "discriminator", config)
 
-        if config.dataset == 'synthetic':
-            get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, config=config)
-            plot_densities(config, generator)
-            plot_densities_middle_points(config, generator)
+        if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
             if (config.z_dim==2) or (config.z_dim==1):
-                plot_heatmap_nearest_point(generator, config)
-                plot_gradient_of_the_generator(generator, config, span_length=config.z_var)
-            if (config.z_dim==2):
+                plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
+                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.5)
+            if (config.output_dim==2):
+                get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, config=config)
+                plot_densities(config, generator)
+                plot_densities_middle_points(config, generator)
                 plot_heatmap_of_the_discriminator(discriminator, config)
 
         config.num_pics += 1

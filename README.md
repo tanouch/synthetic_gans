@@ -31,7 +31,17 @@ Base of the code for the following publications:<br />
 
 ## Examples of some command runs:
 To train a WGANs on 4 data points, just run:
-python synthetic_gans/main.py --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu
+python synthetic_gans/main.py --dataset synthetic --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu
+
+## Examples of some command runs on MNIST & others:
+python mnist_generation.py --name mnist_2 --z_dim 2
+python mnist_generation.py --name mnist_8 --z_dim 8
+python mnist_generation.py --name mnist_2 --z_dim 2 --dataset mnist_conditional
+python mnist_generation.py --name mnist_3 --z_dim 3 --dataset mnist_conditional
+python mnist_generation.py --name mnist_synthetic_2 --z_dim 2 --dataset synthetic_mnist_z2
+python mnist_generation.py --name mnist_synthetic_8 --z_dim 8 --dataset synthetic_mnist_z2
+python mnist_generation.py --name mnist_synthetic_16 --z_dim 16 --dataset synthetic_mnist_z2
+
 
 ## Implementations for real-life GANs (proposed by lucidrains on Github):
 #https://github.com/lucidrains/lightweight-gan <br />

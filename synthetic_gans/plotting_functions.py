@@ -1,4 +1,5 @@
 from my_imports import *
+from matplotlib import colors
 from tools import convert_to_gpu, movingaverage
 from generating_data import generate_z, generate_real_data, rank_by_gradients, rank_by_discriminator
 
@@ -73,21 +74,24 @@ def calculate_distance_to_nearest_point(output, num_points, config, method):
         real_data = config.real_dataset
     else:
         real_data = config.means_mixture
-    if method=="distance":
-        matrix_distances = np.amin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
-    else:
-        shuffle = np.random.permutation(len(real_data))
-        matrix_distances = shuffle[np.argmin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)]
+    
+    matrix_distances = np.amin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
+    classes = np.argmin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
     minn, maxx = min(matrix_distances), max(matrix_distances)
+    minn_classes, maxx_classes = min(classes), max(classes)
+    
     if config.z_dim==2:
         matrix_distances = matrix_distances.reshape(num_points, num_points)
+        classes = classes.reshape(num_points, num_points)
     if config.z_dim==1:
         matrix_distances = np.tile(matrix_distances, (len(matrix_distances), 1))
-    return matrix_distances, minn, maxx 
+        classes = np.tile(classes, (len(classes), 1))
+    return matrix_distances, minn, maxx, classes, minn_classes, maxx_classes
 
-def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=100):
+def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=250):
     if not os.path.exists(config.name_exp+'/distance_nearest_points'):
         os.makedirs(config.name_exp+'/distance_nearest_points')
+    
     xmin, xmax, ymin, ymax = -span_length, span_length, -span_length, span_length
     Xgrid, Ygrid = np.meshgrid(np.linspace(xmin, xmax, num_points), np.linspace(ymin, ymax, num_points))
     z = generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim=config.z_dim)
@@ -95,25 +99,31 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=10
     config.z_dim = z.shape[1]
     gz = generator(z)
     gz = gz.view(gz.shape[0], -1)
-    def plot_some_graph(norm, minn, maxx, name, method):
+    
+    def plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, name, method):        
         plt.clf()
         fig, ax = plt.subplots()
         if method=="distance":
             c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
         else:
-            c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+            listed_cmap = colors.ListedColormap(config.real_colors)
+            boundary_norm = colors.BoundaryNorm(np.arange(1, len(np.unique(classes))), listed_cmap.N)
+            c = ax.imshow(classes, cmap=listed_cmap)
+            #c = ax.pcolormesh(Xgrid, Ygrid, classes, vmin=minn_classes, vmax=maxx_classes, \
+                              #cmap=listed_cmap, norm=boundary_norm, shading='auto')
         ax.set_aspect('equal', 'datalim') 
         plt.margins(0,0)
         ax.grid(False)
         plt.axis('off')
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".jpeg", bbox_inches="tight", pad_inches = 0)
+        plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".png", bbox_inches="tight", pad_inches = 0)
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
         plt.close()
     
-    norm, minn, maxx = calculate_distance_to_nearest_point(gz, num_points, config, method="distance")
-    plot_some_graph(norm, minn, maxx, "distance_nearest_points_", method="distance")
-    norm, minn, maxx = calculate_distance_to_nearest_point(gz, num_points, config, method="class")
-    plot_some_graph(norm, minn, maxx, "class_nearest_points_", method="class")
+    norm, minn, maxx, classes, minn_classes, maxx_classes\
+        = calculate_distance_to_nearest_point(gz, num_points, config, method="distance")
+    plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, "distance_nearest_points_", method="distance")
+    plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, "class_nearest_points_", method="class")
 
 def plot_heatmap_of_the_importance_weights(importance_weighter, config, span_length=2.5, num_points=100):
     if not os.path.exists(config.name_exp+'/importance_weights'):
@@ -142,13 +152,16 @@ def plot_gradient_of_the_discriminator(discriminator, config, num_points=100):
         os.makedirs(config.name_exp+'/disc_gradients')
     real_data = convert_to_gpu(generate_real_data(10000, config, mode="test"), config)
     real_data_np = real_data.detach().cpu().numpy()
-    xmin, xmax, ymin, ymax = np.amin(real_data_np[:,0])-0.25, np.amax(real_data_np[:,0])+0.25, np.amin(real_data_np[:,1])-0.25, np.amax(real_data_np[:,1])+0.25
+    xmin, xmax, ymin, ymax = np.amin(real_data_np[:,0])-0.25, \
+        np.amax(real_data_np[:,0])+0.25, np.amin(real_data_np[:,1])-0.25, np.amax(real_data_np[:,1])+0.25
     Xgrid, Ygrid = np.meshgrid(np.linspace(xmin, xmax, num_points), np.linspace(ymin, ymax, num_points))
     real_data_grid = generate_grid_z(xmin, xmax, ymin, ymax, num_points, config.z_dim)
     real_data_grid = convert_to_gpu(torch.from_numpy(real_data_grid).float(), config)
     dx = discriminator(real_data_grid)
     dx = dx.view(dx.shape[0], -1)
-    norm, minn, maxx = calculate_norm(input_data=real_data_grid, output=dx, net=discriminator, sigma=10e-3, input_dim=config.output_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
+    norm, minn, maxx = calculate_norm(input_data=real_data_grid, \
+                                      output=dx, net=discriminator, sigma=10e-3, input_dim=config.output_dim, \
+                                      nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
     fig, ax = plt.subplots()
     c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm')
@@ -206,7 +219,10 @@ def plot_data_points(generator, config):
 
 
 def plot_densities(config, generator=None):
-    emp_np = generate_real_data(config.num_points_plotted, config, config.training_mode).detach().cpu().numpy()
+    if config.training_mode=="training":
+        emp_np = np.array(config.real_dataset)
+    else:
+        emp_np = generate_real_data(config.num_points_plotted, config, config.training_mode).detach().cpu().numpy()
     gz_np = generator(convert_to_gpu(generate_z(config.num_points_plotted, config.z_var, config), config)).detach().cpu().numpy()
     xmin, xmax, ymin, ymax = \
         min(np.amin(emp_np[:,0])-0.5, np.amin(gz_np[:,0])-0.5), \
@@ -217,8 +233,12 @@ def plot_densities(config, generator=None):
     plt.clf()
     fig, ax = plt.subplots()
     plt.figure(frameon=False)
-    plt.scatter(gz_np[:,0], gz_np[:,1], s=15,  alpha=0.75, c="b")
-    plt.scatter(emp_np[:,0][:512], emp_np[:,1][:512], s=15,  alpha=0.5, c="r")
+    plt.scatter(gz_np[:,0], gz_np[:,1], s=3,  alpha=0.25, c="c")
+    if config.real_colors is not None:
+        for i in range(len(emp_np)):
+            plt.scatter(emp_np[i][0], emp_np[i][1], s=75, alpha=0.85, c=config.real_colors[i])
+    else:
+          plt.scatter(emp_np[:,0][:512], emp_np[:,1][:512], s=50, alpha=0.85, c="r")
     plt.ylim((ymin, ymax))
     plt.xlim((xmin, xmax))
     ax.set_aspect('equal', 'datalim')
@@ -243,9 +263,9 @@ def plot_densities_middle_points(config, generator=None):
     plt.clf()
     fig, ax = plt.subplots()
     plt.figure(frameon=False)
-    plt.scatter(gz_np[:,0], gz_np[:,1], s=15,  alpha=0.75, c="b")
-    plt.scatter(gz_np_mid[:,0], gz_np_mid[:,1], s=15,  alpha=0.75, c="g")
-    plt.scatter(emp_np[:,0][:512], emp_np[:,1][:512], s=15,  alpha=0.5, c="r")
+    plt.scatter(gz_np[:,0], gz_np[:,1], s=15,  alpha=0.5, c="k")
+    plt.scatter(gz_np_mid[:,0], gz_np_mid[:,1], s=15,  alpha=0.5, c="g")
+    plt.scatter(emp_np[:,0][:512], emp_np[:,1][:512], s=15,  alpha=0.95, c="r")
     plt.ylim((ymin, ymax))
     plt.xlim((xmin, xmax))
     ax.set_aspect('equal', 'datalim')
