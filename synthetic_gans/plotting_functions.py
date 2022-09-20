@@ -106,7 +106,11 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         if method=="distance":
             c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
         else:
-            listed_cmap = colors.ListedColormap(config.real_colors)
+            if config.real_colors is not None:
+                listed_cmap = colors.ListedColormap(config.real_colors)
+            else:
+                print("No colors defined per classes")
+                return
             boundary_norm = colors.BoundaryNorm(np.arange(1, len(np.unique(classes))), listed_cmap.N)
             c = ax.imshow(classes, cmap=listed_cmap)
             #c = ax.pcolormesh(Xgrid, Ygrid, classes, vmin=minn_classes, vmax=maxx_classes, \

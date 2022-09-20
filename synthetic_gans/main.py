@@ -83,8 +83,7 @@ def get_config():
 
 config = get_config()
 config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
-print(config, flush = True)
-print(config.real_colors)
+config.results = dict()
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
@@ -124,13 +123,12 @@ if config.dataset == 'synthetic':
     if config.training_mode=="training":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
 
-if config.dataset == "synthetic_simplex":
+elif config.dataset == "synthetic_simplex":
     config.output_dim = config.output_modes
     modes = np.arange(config.output_modes)
     config.means_mixture = np.zeros((modes.size, modes.max()+1))
-    config.means_mixture[np.arange(modes.size),modes] = 1
-    weights = np.ones(config.output_modes)
-    config.weights_mixture = weights/np.sum(weights)
+    config.means_mixture[np.arange(modes.size), modes] = 1
+    config.weights_mixture = np.ones(config.output_modes)/config.output_modes
     if config.training_mode=="training":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
     
@@ -138,6 +136,7 @@ else:
     print("Not the right dataset")
     sys.exit()
 
+print(config, flush = True)
 print("")
 print("Starting training of GAN!")
 if config.gen_type=="simple":
@@ -157,10 +156,11 @@ g_optimizer = torch.optim.Adam(generator.parameters(), lr=config.gen_lr, betas=(
 discriminator.train()
 d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=config.disc_lr, betas=(0.5,0.5))
 
-def get_scores_and_plot_graphs(metrics, generator, metric_score, mode, config):
+def get_scores_and_plot_graphs(metrics, generator, metric_score, mode, step, config):
     print("")
     print(metric_score, mode)
     dict_scores = get_pr_scores(metrics, config, generator, metric_score, mode)
+    config.results[step] = dict_scores
     for metric in config.metrics:
         print(metric, dict_scores[metric])
 
@@ -176,11 +176,11 @@ for s in range(config.steps_gan):
         save_models(discriminator, s, "discriminator", config)
 
         if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
+            get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, step=s, config=config)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
-                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.5)
+                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75)
             if (config.output_dim==2):
-                get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, config=config)
                 plot_densities(config, generator)
                 plot_densities_middle_points(config, generator)
                 plot_heatmap_of_the_discriminator(discriminator, config)
@@ -188,4 +188,6 @@ for s in range(config.steps_gan):
         config.num_pics += 1
         print('____________________')
 
+with open(config.name_exp+".json", 'w') as f:
+    json.dump(config.results, f)
 print("#######################")
