@@ -169,6 +169,8 @@ def knn_scores(generator, config):
     for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         classes_means_this_class = classes_z_Kmeans[indexes]
+        print(np.bincount(classes_means_this_class))
+        print(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
         accuracies.append(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
         lengths.append(len(classes_means_this_class))
     KNNacc = np.mean(np.multiply(accuracies,lengths))/np.sum(lengths)
