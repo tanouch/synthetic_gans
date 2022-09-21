@@ -148,7 +148,7 @@ def knn_scores(generator, config):
 
     print(z.shape)
 
-    #1 Get the classes from the position in the output space
+    #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
     different_classes = np.unique(classes)
     print('diff classes', different_classes)
@@ -165,8 +165,8 @@ def knn_scores(generator, config):
 
     print('zmeans', z_Kmeans)
 
-    #3 Get the classes from the position in the latent space
-    _, classes_z_Kmeans = calculate_distance_to_nearest_point(gz, config, real_data=np.array(z_Kmeans))
+    #3 Get the classes from (z) the position in the latent space
+    _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=np.array(z_Kmeans))
 
     #4 Compute the proportion of similarity in the classes !
     accuracies, lengths = list(), list()
