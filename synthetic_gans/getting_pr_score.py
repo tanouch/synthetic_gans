@@ -158,7 +158,7 @@ def knn_scores(generator, config):
         print(z_this_class[:10])
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
-        z_Kmeans.append([z_mean[1], z_mean[0]])
+        z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
     print('zmeans', z_Kmeans)
 
@@ -168,12 +168,14 @@ def knn_scores(generator, config):
     #4 Compute the proportion of similarity in the classes !
     accuracies, lengths = list(), list()
     for this_class in np.unique(classes):
-        indexes = np.where(classes==this_class)[0]
-        classes_means_this_class = classes_z_Kmeans[indexes]
-        print(np.bincount(classes_means_this_class))
-        print(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
-        accuracies.append(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
-        lengths.append(len(classes_means_this_class))
+        indexes = np.where(classes_z_Kmeans==this_class)[0]
+        z_these_indexes = z[indexes]
+        print(z_these_indexes[:10])
+        classes_these_indexes = classes[indexes]
+        # print(np.bincount(classes_means_this_class))
+        # print(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
+        accuracies.append(np.amax(np.bincount(classes_these_indexes))/len(classes_these_indexes))
+        lengths.append(len(classes_these_indexes))
     KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
     print('KNN acc', KNNacc)
     return z_Kmeans
