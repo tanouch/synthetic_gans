@@ -3,6 +3,14 @@ from tools import convert_to_gpu
 from generating_data import generate_z, generate_real_data
 from plotting_functions import calculate_distance_to_nearest_point
 
+def get_scores_and_plot_graphs(metrics, generator, metric_score, mode, step, config):
+    print("")
+    print(metric_score, mode)
+    dict_scores = get_pr_scores(metrics, config, generator, metric_score, mode)
+    config.results[step] = dict_scores
+    for metric in config.metrics:
+        print(metric, dict_scores[metric])
+
 def get_conf_int(data):
     if (np.amax(data)==np.amin(data)):
         return (data[0], data[0])
@@ -178,6 +186,4 @@ def knn_scores(generator, config):
         accuracies.append(np.amax(np.bincount(classes_these_indexes))/len(classes_these_indexes))
         lengths.append(len(classes_these_indexes))
     KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
-    print('knn_acc', KNNacc)
-    print('simplicial_ratio', simplicial_ratio)
     return (KNNacc, simplicial_ratio)

@@ -3,7 +3,7 @@ from generating_data import create_mixture_gaussian_dataset
 from plotting_functions import plot_gradient_of_the_generator, plot_densities, plot_heatmap_of_the_discriminator, \
     plot_heatmap_nearest_point, plot_densities_middle_points
 from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Generator_mnist, Discriminator_mnist
-from getting_pr_score import get_pr_scores, knn_scores
+from getting_pr_score import get_scores_and_plot_graphs
 from tools import convert_to_gpu
 from training_utils import train_discriminator, train_generator, save_models
 
@@ -154,14 +154,6 @@ g_optimizer = torch.optim.Adam(generator.parameters(), lr=config.gen_lr, betas=(
 discriminator.train()
 d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=config.disc_lr, betas=(0.5,0.5))
 
-def get_scores_and_plot_graphs(metrics, generator, metric_score, mode, step, config):
-    print("")
-    print(metric_score, mode)
-    dict_scores = get_pr_scores(metrics, config, generator, metric_score, mode)
-    config.results[step] = dict_scores
-    for metric in config.metrics:
-        print(metric, dict_scores[metric])
-
 for s in range(config.steps_gan):
     for d in range(config.d_step):
         train_discriminator(discriminator, generator, d_optimizer, s, config)
@@ -175,7 +167,6 @@ for s in range(config.steps_gan):
 
         if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
             get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, step=s, config=config)
-            knn_scores(generator, config)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
                 plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75)
