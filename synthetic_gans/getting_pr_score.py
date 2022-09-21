@@ -142,10 +142,9 @@ def hausdorff_estimate_interpolation(X_a, X_b, metric_score, config):
     return max_of_mins
 
 def knn_scores(generator, config):
-    z = generate_z(config.num_points_plotted, config.z_var, config)
+    z = generate_z(config.num_KNN, config.z_var, config)
     gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
     z = z.detach().numpy()
-    #z /= np.linalg.norm(z_mean)
     print("meaaan", np.mean(z, axis=0))
     #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
@@ -156,6 +155,7 @@ def knn_scores(generator, config):
     for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
+        print(z_this_class[:10])
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append([z_mean[1], z_mean[0]])

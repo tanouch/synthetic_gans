@@ -32,7 +32,7 @@ def get_config():
     parser.add_argument('--g_step', type=int, default=1)
     parser.add_argument('--g_width', type=int, default=256)
     parser.add_argument('--d_width', type=int, default=256)
-    parser.add_argument('--g_depth', type=int, default=2)
+    parser.add_argument('--g_depth', type=int, default=3)
     parser.add_argument('--d_depth', type=int, default=5)
     parser.add_argument('--seed', type=int, default=50)
 
@@ -46,6 +46,7 @@ def get_config():
     parser.add_argument('--plot_config', default = True, type=bool)
     parser.add_argument('--num_runs', default=1, type=int)
     parser.add_argument('--num_points_plotted', type=int, default=1000)
+    parser.add_argument('--num_KNN', type=int, default=10000)
 
     #TRUE DIST
     #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes)
