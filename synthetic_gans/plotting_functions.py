@@ -1,6 +1,7 @@
+from turtle import distance
 from my_imports import *
 from matplotlib import colors
-from tools import convert_to_gpu, movingaverage
+from tools import convert_to_gpu
 from generating_data import generate_z, generate_real_data, rank_by_gradients, rank_by_discriminator
 
 def generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim):
@@ -80,8 +81,10 @@ def calculate_distance_to_nearest_point(output, config, real_data=None):
             real_data = config.real_dataset
         else:
             real_data = config.means_mixture
-    matrix_distances = np.amin(distance_matrix(output, real_data), axis=1)
-    classes = np.argmin(distance_matrix(output, real_data), axis=1)
+    distances = distance_matrix(output, real_data)
+    print(distances.shape)
+    matrix_distances = np.amin(distances, axis=1)
+    classes = np.argmin(distances, axis=1)
     return matrix_distances, classes
 
 def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=250):
