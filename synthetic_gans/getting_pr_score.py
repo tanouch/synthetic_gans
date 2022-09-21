@@ -148,12 +148,11 @@ def knn_scores(generator, config):
 
     #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
-    different_classes = np.unique(classes)
-    print('diff classes', different_classes)
+    print('diff classes', np.unique(classes))
 
     #2 Get the mean of these classes in the latent space
     z_Kmeans = list()
-    for this_class in different_classes:
+    for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
         z_mean = np.mean(z_this_class, axis=0)

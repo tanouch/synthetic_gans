@@ -105,7 +105,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         classes = np.tile(classes, (len(classes), 1))
 
     z_Kmeans = list()
-    for this_class in classes:
+    for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
         z_mean = np.mean(z_this_class, axis=0)
