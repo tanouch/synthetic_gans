@@ -1,11 +1,9 @@
 from my_imports import *
-from generating_data import create_mixture_gaussian_dataset, rank_by_discriminator
-from plotting_functions import plot_gradient_of_the_generator, plot_mnist_ranked_images, plot_mnist_dataset, plot_densities, \
-    plot_gradient_of_the_discriminator, plot_heatmap_of_the_discriminator, plot_in_between_modes, \
-    plot_mnist_last_ranked_images, plot_in_between_modes_MST, plot_heatmap_nearest_point, \
-    plot_heatmap_of_the_importance_weights, plot_densities_iw, plot_densities_middle_points
-from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Classifier_mnist, Generator_mnist, Discriminator_mnist
-from getting_pr_score import get_pr_scores
+from generating_data import create_mixture_gaussian_dataset
+from plotting_functions import plot_gradient_of_the_generator, plot_densities, plot_heatmap_of_the_discriminator, \
+    plot_heatmap_nearest_point, plot_densities_middle_points
+from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Generator_mnist, Discriminator_mnist
+from getting_pr_score import get_pr_scores, knn_scores
 from tools import convert_to_gpu
 from training_utils import train_discriminator, train_generator, save_models
 
@@ -21,7 +19,7 @@ def get_config():
     parser.add_argument("--batch_norm_real_data", default=False, type=bool, help='batch norm input data')
     parser.add_argument('--steps_gan', type=int, default=20001)
     parser.add_argument('--steps_eval', type=int, default=1000)
-    
+
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
     parser.add_argument("--gen_type", type = str, default='simple')
     parser.add_argument("--disc_type", type = str, default='simpleReLU')
@@ -36,11 +34,11 @@ def get_config():
     parser.add_argument('--g_depth', type=int, default=2)
     parser.add_argument('--d_depth', type=int, default=5)
     parser.add_argument('--seed', type=int, default=50)
-    
+
     #TRAINING
-    #training_mode: do we define a training dataset (training) or we always sample from mu_star (test) ?? 
+    #training_mode: do we define a training dataset (training) or we always sample from mu_star (test) ??
     parser.add_argument('--training_mode', type=str, default = "training")
-    #testing_mode: we want to sample from mu_star so "test". 
+    #testing_mode: we want to sample from mu_star so "test".
     parser.add_argument('--testing_mode', type=str, default = "test")
     #what metrics do we want to report ?
     parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd', type=str)
@@ -49,7 +47,7 @@ def get_config():
     parser.add_argument('--num_points_plotted', type=int, default=500)
 
     #TRUE DIST
-    #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes) 
+    #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes)
     parser.add_argument('--real_dataset_size', type=int, default=1)
     parser.add_argument('--output_dim', type=int, default=2)
     parser.add_argument('--output_modes_locs', default = 3, type=float)
@@ -72,7 +70,7 @@ def get_config():
     parser.add_argument('--num_runs_knn', default=5, type=int)
     parser.add_argument('--batch_size_knn', type=int, default=1024)
     parser.add_argument('--real_colors', type=str, default=None)
-    
+
     opt = parser.parse_args()
     opt.kth_nearests = [int(item) for item in opt.kth_nearests.split(',')]
     if opt.real_colors is not None:
@@ -125,12 +123,11 @@ if config.dataset == 'synthetic':
 
 elif config.dataset == "synthetic_simplex":
     config.output_dim = config.output_modes
-    #modes = np.arange(config.output_modes)
     config.means_mixture = config.output_modes_locs*np.eye(config.output_modes)
     config.weights_mixture = np.ones(config.output_modes)/config.output_modes
     if config.training_mode=="training":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
-    
+
 else:
     print("Not the right dataset")
     sys.exit()
@@ -145,7 +142,7 @@ else:
 
 if config.disc_type=="simpleReLU":
     discriminator = convert_to_gpu(Discriminator(config), config)
-elif config.disc_type=="mnist": 
+elif config.disc_type=="mnist":
     discriminator = convert_to_gpu(Discriminator_mnist(config), config)
 else:
     discriminator = convert_to_gpu(Discriminator_bjorckGroupSort(config), config)
@@ -168,7 +165,7 @@ for s in range(config.steps_gan):
         train_discriminator(discriminator, generator, d_optimizer, s, config)
     for g in range(config.g_step):
         train_generator(discriminator, generator, g_optimizer, s, config)
-    
+
     if s%config.steps_eval == 0 and s!= 0 :
         print('Steps', s)
         save_models(generator, s, "generator", config)
@@ -176,6 +173,7 @@ for s in range(config.steps_gan):
 
         if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
             get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, step=s, config=config)
+            knn_scores(generator, config)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
                 plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75)

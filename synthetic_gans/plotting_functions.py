@@ -13,7 +13,7 @@ def generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim):
     if dim==1:
         for x in np.linspace(xmin, xmax, num_points):
             Z.append([x])
-        return np.array(Z)    
+        return np.array(Z)
 
 def calculate_norm(input_data, output, net, sigma, input_dim, nb_estimations, num_points, config, matrix):
     norm_gradients = convert_to_gpu(torch.zeros(input_data.size()[0]), config=config)
@@ -61,7 +61,7 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
     plt.clf()
     fig, ax = plt.subplots()
     c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
-    ax.set_aspect('equal', 'datalim') 
+    ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
     plt.axis('off')
@@ -69,29 +69,20 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
     plt.savefig(config.name_exp+"/gradients/norm_jacobian_"+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
     plt.close()
 
-def calculate_distance_to_nearest_point(output, num_points, config, method):
-    if config.training_mode=="training":
-        real_data = config.real_dataset
-    else:
-        real_data = config.means_mixture
-    
+def calculate_distance_to_nearest_point(output, config, real_data=None):
+    if real_data==None:
+        if config.training_mode=="training":
+            real_data = config.real_dataset
+        else:
+            real_data = config.means_mixture
     matrix_distances = np.amin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
     classes = np.argmin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
-    minn, maxx = min(matrix_distances), max(matrix_distances)
-    minn_classes, maxx_classes = min(classes), max(classes)
-    
-    if config.z_dim==2:
-        matrix_distances = matrix_distances.reshape(num_points, num_points)
-        classes = classes.reshape(num_points, num_points)
-    if config.z_dim==1:
-        matrix_distances = np.tile(matrix_distances, (len(matrix_distances), 1))
-        classes = np.tile(classes, (len(classes), 1))
-    return matrix_distances, minn, maxx, classes, minn_classes, maxx_classes
+    return matrix_distances, classes
 
 def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=250):
     if not os.path.exists(config.name_exp+'/distance_nearest_points'):
         os.makedirs(config.name_exp+'/distance_nearest_points')
-    
+
     xmin, xmax, ymin, ymax = -span_length, span_length, -span_length, span_length
     Xgrid, Ygrid = np.meshgrid(np.linspace(xmin, xmax, num_points), np.linspace(ymin, ymax, num_points))
     z = generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim=config.z_dim)
@@ -99,8 +90,8 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
     config.z_dim = z.shape[1]
     gz = generator(z)
     gz = gz.view(gz.shape[0], -1)
-    
-    def plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, name, method):        
+
+    def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
         fig, ax = plt.subplots()
         if method=="distance":
@@ -111,11 +102,11 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
             else:
                 print("No colors defined per classes")
                 return
-            boundary_norm = colors.BoundaryNorm(np.arange(1, len(np.unique(classes))), listed_cmap.N)
+            #boundary_norm = colors.BoundaryNorm(np.arange(1, len(np.unique(classes))), listed_cmap.N)
             c = ax.imshow(classes, cmap=listed_cmap)
             #c = ax.pcolormesh(Xgrid, Ygrid, classes, vmin=minn_classes, vmax=maxx_classes, \
                               #cmap=listed_cmap, norm=boundary_norm, shading='auto')
-        ax.set_aspect('equal', 'datalim') 
+        ax.set_aspect('equal', 'datalim')
         plt.margins(0,0)
         ax.grid(False)
         plt.axis('off')
@@ -123,11 +114,17 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".png", bbox_inches="tight", pad_inches = 0)
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
         plt.close()
-    
-    norm, minn, maxx, classes, minn_classes, maxx_classes\
-        = calculate_distance_to_nearest_point(gz, num_points, config, method="distance")
-    plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, "distance_nearest_points_", method="distance")
-    plot_some_graph(norm, minn, maxx, classes, minn_classes, maxx_classes, "class_nearest_points_", method="class")
+
+    norm, classes = calculate_distance_to_nearest_point(gz, num_points, config)
+    if config.z_dim==2:
+        norm = norm.reshape(num_points, num_points)
+        classes = classes.reshape(num_points, num_points)
+    if config.z_dim==1:
+        norm = np.tile(norm, (len(norm), 1))
+        classes = np.tile(classes, (len(classes), 1))
+
+    plot_some_graph(norm, min(norm), max(norm), classes, "distance_nearest_points_", method="distance")
+    plot_some_graph(norm, min(norm), max(norm), classes, "class_nearest_points_", method="class")
 
 def plot_heatmap_of_the_importance_weights(importance_weighter, config, span_length=2.5, num_points=100):
     if not os.path.exists(config.name_exp+'/importance_weights'):
@@ -141,7 +138,7 @@ def plot_heatmap_of_the_importance_weights(importance_weighter, config, span_len
     wz = np.maximum(wz, 0)
     min_wz, max_wz = min(wz), max(wz)
     wz = wz.reshape(num_points, num_points)
-    fig, ax = plt.subplots()
+    _, ax = plt.subplots()
     c = ax.pcolormesh(Xgrid, Ygrid, wz, vmin=min_wz, vmax=max_wz)
     ax.set_aspect('equal', 'datalim')
     ax.grid(False)
@@ -254,7 +251,7 @@ def plot_densities(config, generator=None):
     plt.close()
 
 def plot_densities_middle_points(config, generator=None):
-    emp_np = generate_real_data(config.num_points_plotted, config, config.training_mode).detach().cpu().numpy()    
+    emp_np = generate_real_data(config.num_points_plotted, config, config.training_mode).detach().cpu().numpy()
     gz_np_mid = generator(convert_to_gpu(generate_z(int(config.num_points_plotted/5), \
                                                               config.z_var/50, config), config)).detach().cpu().numpy()
     gz_np = generator(convert_to_gpu(generate_z(config.num_points_plotted, config.z_var, config), config)).detach().cpu().numpy()
@@ -281,7 +278,7 @@ def plot_densities_middle_points(config, generator=None):
     plt.close()
 
 
-def plot_densities_iw(config, generator, importance_weighter):    
+def plot_densities_iw(config, generator, importance_weighter):
     z = generate_z(config.num_points_plotted, config.z_var, config)
     wz = importance_weighter(z)
     gz = generator(z).detach()
@@ -335,7 +332,7 @@ def plot_mnist_ranked_images(generator, config):
     gz = gz.view(gz.shape[0], -1)
     gz_np = gz.detach().cpu().numpy()
     gz_np = np.reshape(gz_np,(gz_np.shape[0],he,wi))
-    
+
     image = np.zeros((he*nb_lines,wi*nb_cols))
     for i,gz in enumerate(gz_np):
         if i == nb_lines*nb_cols:
@@ -362,7 +359,7 @@ def plot_mnist_last_ranked_images(generator, discriminator, ranking, config):
     else:
         print("Not the right ranking")
         sys.exit()
-    
+
     he, wi = 28, 28
     gz = gz.view(gz.shape[0], -1)
     gz_np = gz.detach().cpu().numpy()
@@ -380,12 +377,12 @@ def plot_mnist_last_ranked_images(generator, discriminator, ranking, config):
     plt.axis('off')
     plt.savefig(config.name_exp+'/ranked_images/last_ranked_images_'+ranking+str(config.num_pics)+".jpeg", bbox_inches="tight")
     plt.close()
-    
+
 
 def plot_in_between_modes_MST(generator, discriminator, ranking, metric, config):
     if not os.path.exists(config.name_exp+'/position_data'):
         os.makedirs(config.name_exp+'/position_data')
-    
+
     if ranking=="gradient":
         gz = rank_by_gradients(generator, 750, config)[-35:]
     elif ranking=="discriminator":
@@ -410,11 +407,11 @@ def plot_in_between_modes_MST(generator, discriminator, ranking, metric, config)
     plt.clf()
     plt.axis('off')
     pos = nx.spring_layout(T)
-    pos_labels, labels = {}, {}    
+    pos_labels, labels = {}, {}
     for node in list(T.nodes())[:config.real_dataset_size]:
         labels[node] = config.real_dataset_labels[node]
         pos_labels[node] = pos[node]
-    
+
     nx.draw_networkx_nodes(T, pos, nodelist= list(T.nodes())[config.real_dataset_size:] , node_color='b', node_size=125, alpha=0.60)
     nx.draw_networkx_nodes(T, pos, nodelist = list(T.nodes())[:config.real_dataset_size], node_color='r', node_size=500, alpha=1.0)
     nx.draw_networkx_labels(T, pos_labels, labels, font_size=20, font_color='k')
@@ -446,7 +443,7 @@ def plot_mnist_dataset(config):
 def plot_in_between_modes(generator, metric, config):
     if not os.path.exists(config.name_exp+'/position_data'):
         os.makedirs(config.name_exp+'/position_data')
-    
+
     gz = rank_by_gradients(generator, 750, config)[-35:]
     gz = gz.view(gz.shape[0], 1, int(np.sqrt(gz.shape[1])), int(np.sqrt(gz.shape[1])))
     data = torch.cat((config.real_dataset, gz))
@@ -458,13 +455,13 @@ def plot_in_between_modes(generator, metric, config):
     else:
         print("Not the right metric")
         sys.exit()
-    
+
     data = data.detach().numpy()
     data = cdist(data, data, metric="euclidean")
     mds = manifold.MDS(n_components=2, dissimilarity="precomputed", random_state=123, n_init=10, n_jobs=-1, max_iter=500)
     results = mds.fit(data)
     coords = results.embedding_
-    
+
     plt.clf()
     plt.subplots_adjust(bottom = 0.1)
     plt.scatter(coords[:, 0][:config.real_dataset_size], coords[:, 1][:config.real_dataset_size], marker = 'o', c="b")
@@ -475,7 +472,7 @@ def plot_in_between_modes(generator, metric, config):
     for i in range(len(matches)):
         x, y = [coords[matches[:,0][i]][0], coords[matches[:,1][i]][0]], [coords[matches[:,0][i]][1], coords[matches[:,1][i]][1]]
         plt.plot(x, y, c="b")
-    
+
     for label, x, y in zip(config.real_dataset_labels, coords[:, 0][:config.real_dataset_size], coords[:, 1][:config.real_dataset_size]):
         plt.annotate(str(label)[7:-1], xy = (x, y), xytext = (-20, 20), fontsize=15,
             textcoords = 'offset points', ha = 'right', va = 'bottom',

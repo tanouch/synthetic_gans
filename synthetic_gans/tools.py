@@ -31,7 +31,6 @@ def get_all_interpolations_MST(MST, config):
     result = torch.cat(interpolationMST)
     return result
 
-
 def weights_init(m):
     if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Linear):
         nn.init.normal_(m.weight, mean=0.0, std=0.5)

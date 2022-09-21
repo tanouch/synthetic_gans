@@ -1,6 +1,7 @@
 from my_imports import *
 from tools import convert_to_gpu
 from generating_data import generate_z, generate_real_data, rank_by_discriminator
+from plotting_functions import calculate_distance_to_nearest_point
 
 def get_conf_int(data):
     if (np.amax(data)==np.amin(data)):
@@ -16,7 +17,7 @@ def get_pr_scores(metrics, config, generator=None, metric_score="L2", mode="test
             set_gz = generate_real_data(config.real_dataset_size, config, config.training_mode)
         else:
             set_gz = generator(convert_to_gpu(generate_z(config.num_points_sampled_knn, config.z_var, config), config))
-        
+
         #MODE
         if mode=="test":
             set_real_data = convert_to_gpu(generate_real_data(config.num_points_sampled_knn, config, mode), config)
@@ -34,7 +35,7 @@ def get_pr_scores(metrics, config, generator=None, metric_score="L2", mode="test
 
         set_gz = set_gz.view(set_gz.shape[0], -1)
         set_real_data = set_real_data.view(set_real_data.shape[0], -1)
-        
+
         for metric in metrics:
             if metric=="prec":  precisions.append(manifold_estimate(set_real_data, set_gz, config))
             if metric=="rec":   recalls.append(manifold_estimate(set_gz, set_real_data, config))
@@ -139,3 +140,19 @@ def hausdorff_estimate_interpolation(X_a, X_b, metric_score, config):
     plt.savefig(config.name_exp+"/distances_distribution/"+str(config.num_pics)+"_"+metric_score+".pdf", bbox_inches="tight")
     max_of_mins = np.sqrt(np.mean(min_distance))
     return max_of_mins
+
+def knn_scores(generator, config):
+    z = generate_z(config.num_points_plotted, config.z_var, config)
+    gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
+    z = z.detach().numpy()
+    _, classes = calculate_distance_to_nearest_point(gz, config)
+    different_classes = np.unique(classes)
+
+    means = list()
+    for this_class in different_classes:
+        indexes = np.where(classes==this_class)[0]
+        z_this_class = z[indexes]
+        means.append(np.mean(z_this_class, axis=0))
+
+    _, classes_means = calculate_distance_to_nearest_point(gz, config, real_data=np.array(means))
+    print('Acc:', np.mean(classes=classes_means))
