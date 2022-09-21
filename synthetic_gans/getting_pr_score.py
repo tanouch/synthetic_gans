@@ -157,6 +157,7 @@ def knn_scores(generator, config):
         z_this_class = z[indexes]
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
+        z_mean = np.transpose(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
     print('zmeans', z_Kmeans)

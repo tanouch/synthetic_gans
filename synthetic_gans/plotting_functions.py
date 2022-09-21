@@ -239,6 +239,7 @@ def plot_densities(config, generator=None):
     else:
         emp_np = np.array(config.means_mixture)
         #emp_np = generate_real_data(config.num_points_plotted, config, config.training_mode).detach().cpu().numpy()
+
     gz_np = generator(convert_to_gpu(generate_z(config.num_points_plotted, config.z_var, config), config)).detach().cpu().numpy()
     xmin, xmax, ymin, ymax = \
         min(np.amin(emp_np[:,0])-0.5, np.amin(gz_np[:,0])-0.5), \
