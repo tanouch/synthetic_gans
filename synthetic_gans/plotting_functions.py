@@ -95,7 +95,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
     config.z_dim = z.shape[1]
     gz = generator(z)
     gz = gz.view(gz.shape[0], -1).detach().cpu().numpy()
-    z = z.detach().numpy()
+    z = z.detach().cpu().numpy()
     norm, classes = calculate_distance_to_nearest_point(gz, config)
     if config.z_dim==2:
         norm = norm.reshape(num_points, num_points)
