@@ -23,9 +23,9 @@ class Importance_weighter(nn.Module):
 class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
-        if config.activation_function=="GeLU":
+        if config.activation_function=="gelu":
             activation = nn.GELU()
-        elif config.activation_function=="ReLU":
+        elif config.activation_function=="relu":
             activation = nn.ReLU()
         array = [nn.Linear(config.z_dim, config.g_width), activation]
         array += [nn.Linear(config.g_width, config.g_width), activation]*(config.g_depth-1)
