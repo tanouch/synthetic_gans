@@ -155,4 +155,4 @@ def knn_scores(generator, config):
         means.append(np.mean(z_this_class, axis=0))
 
     _, classes_means = calculate_distance_to_nearest_point(gz, config, real_data=np.array(means))
-    print('Acc:', np.mean(np.equal(classes,classes_means)))
+    print('KNN acc', np.mean(np.equal(classes,classes_means)))

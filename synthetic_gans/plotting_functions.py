@@ -123,7 +123,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         norm = np.tile(norm, (len(norm), 1))
         classes = np.tile(classes, (len(classes), 1))
 
-    print(max(norm))
+    print(norm)
     plot_some_graph(norm, min(norm), max(norm), classes, "distance_nearest_points_", method="distance")
     plot_some_graph(norm, min(norm), max(norm), classes, "class_nearest_points_", method="class")
 
