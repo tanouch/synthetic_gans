@@ -42,7 +42,7 @@ def get_config():
     #testing_mode: we want to sample from mu_star so "test".
     parser.add_argument('--testing_mode', type=str, default = "test")
     #what metrics do we want to report ?
-    parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd', type=str)
+    parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd,knn', type=str)
     parser.add_argument('--plot_config', default = True, type=bool)
     parser.add_argument('--num_runs', default=1, type=int)
     parser.add_argument('--num_points_plotted', type=int, default=1000)

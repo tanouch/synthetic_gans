@@ -107,8 +107,6 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
-    print("meanBIS", np.mean(z, axis=0))
-    print('zmeansBIS', z_Kmeans)
 
     if config.z_dim==2:
         norm = norm.reshape(num_points, num_points)

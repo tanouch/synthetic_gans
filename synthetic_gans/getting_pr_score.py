@@ -54,6 +54,7 @@ def get_pr_scores(metrics, config, generator=None, metric_score="L2", mode="test
                 emds.append(emd*max_m)
 
     for metric in metrics:
+        if metric=="knn":  dict_metrics[metric] = knn_scores(generator, config)
         if metric=="prec":  dict_metrics[metric] = get_conf_int([elem[0] for elem in precisions])
         if metric=="rec":   dict_metrics[metric] = get_conf_int([elem[0] for elem in recalls])
         if metric=="emd":   dict_metrics[metric] = get_conf_int(emds)
@@ -174,5 +175,5 @@ def knn_scores(generator, config):
         accuracies.append(np.amax(np.bincount(classes_these_indexes))/len(classes_these_indexes))
         lengths.append(len(classes_these_indexes))
     KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
-    print('KNN acc', KNNacc)
+    print('knn_acc', KNNacc)
     return z_Kmeans
