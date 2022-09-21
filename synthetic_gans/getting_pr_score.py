@@ -166,7 +166,7 @@ def knn_scores(generator, config):
 
     #4 Compute the proportion of similarity in the classes !
     accuracies, lengths = list(), list()
-    for this_class in different_classes:
+    for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         classes_means_this_class = classes_z_Kmeans[indexes]
         accuracies.append(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
