@@ -59,8 +59,8 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
     norm, minn, maxx = calculate_norm(input_data=z, output=gz, net=generator, sigma=10e-3, \
                                       input_dim=config.z_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
-    fig, ax = plt.subplots()
-    c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+    _, ax = plt.subplots()
+    ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
