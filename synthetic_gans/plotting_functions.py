@@ -60,10 +60,11 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
                                       input_dim=config.z_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
     _, ax = plt.subplots()
-    ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+    ax.pcolormesh(Xgrid, Ygrid, np.transpose(norm), vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
 
     if z_means is not None:
-        plt.scatter(z_means[:,0], z_means[:,1], s=20,  alpha=0.9, c="g")
+        plt.scatter(z_means[:,0], z_means[:,1], s=50,  alpha=1., c="g")
+
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
@@ -96,19 +97,16 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
 
     def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
-        fig, ax = plt.subplots()
+        _, ax = plt.subplots()
         if method=="distance":
-            c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+            ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
         else:
             if config.real_colors is not None:
                 listed_cmap = colors.ListedColormap(config.real_colors)
             else:
                 print("No colors defined per classes")
                 return
-            #boundary_norm = colors.BoundaryNorm(np.arange(1, len(np.unique(classes))), listed_cmap.N)
-            c = ax.imshow(classes, cmap=listed_cmap)
-            #c = ax.pcolormesh(Xgrid, Ygrid, classes, vmin=minn_classes, vmax=maxx_classes, \
-                              #cmap=listed_cmap, norm=boundary_norm, shading='auto')
+            ax.imshow(classes, cmap=listed_cmap)
         ax.set_aspect('equal', 'datalim')
         plt.margins(0,0)
         ax.grid(False)
@@ -142,7 +140,7 @@ def plot_heatmap_of_the_importance_weights(importance_weighter, config, span_len
     min_wz, max_wz = min(wz), max(wz)
     wz = wz.reshape(num_points, num_points)
     _, ax = plt.subplots()
-    c = ax.pcolormesh(Xgrid, Ygrid, wz, vmin=min_wz, vmax=max_wz)
+    ax.pcolormesh(Xgrid, Ygrid, wz, vmin=min_wz, vmax=max_wz)
     ax.set_aspect('equal', 'datalim')
     ax.grid(False)
     plt.axis('off')
@@ -167,8 +165,8 @@ def plot_gradient_of_the_discriminator(discriminator, config, num_points=100):
                                       output=dx, net=discriminator, sigma=10e-3, input_dim=config.output_dim, \
                                       nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
-    fig, ax = plt.subplots()
-    c = ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm')
+    _, ax = plt.subplots()
+    ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm')
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
