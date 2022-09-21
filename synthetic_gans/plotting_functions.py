@@ -123,9 +123,8 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         norm = np.tile(norm, (len(norm), 1))
         classes = np.tile(classes, (len(classes), 1))
 
-    print(norm)
-    plot_some_graph(norm, min(norm), max(norm), classes, "distance_nearest_points_", method="distance")
-    plot_some_graph(norm, min(norm), max(norm), classes, "class_nearest_points_", method="class")
+    plot_some_graph(norm, np.amin(norm), np.amax(norm), classes, "distance_nearest_points_", method="distance")
+    plot_some_graph(norm, np.amin(norm), np.amax(norm), classes, "class_nearest_points_", method="class")
 
 def plot_heatmap_of_the_importance_weights(importance_weighter, config, span_length=2.5, num_points=100):
     if not os.path.exists(config.name_exp+'/importance_weights'):
