@@ -32,7 +32,7 @@ def get_config():
     parser.add_argument('--g_step', type=int, default=1)
     parser.add_argument('--g_width', type=int, default=256)
     parser.add_argument('--d_width', type=int, default=256)
-    parser.add_argument('--g_depth', type=int, default=3)
+    parser.add_argument('--g_depth', type=int, default=2)
     parser.add_argument('--d_depth', type=int, default=5)
     parser.add_argument('--seed', type=int, default=50)
 

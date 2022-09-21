@@ -145,6 +145,7 @@ def knn_scores(generator, config):
     z = generate_z(config.num_points_plotted, config.z_var, config)
     gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
     z = z.detach().numpy()
+    #z /= np.linalg.norm(z_mean)
     print("meaaan", np.mean(z, axis=0))
     #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
@@ -162,6 +163,7 @@ def knn_scores(generator, config):
     print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
+    print(z.shape, z_Kmeans.shape)
     _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=z_Kmeans)
 
     #4 Compute the proportion of similarity in the classes !
