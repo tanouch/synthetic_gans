@@ -52,10 +52,10 @@ def get_config():
     #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes) 
     parser.add_argument('--real_dataset_size', type=int, default=1)
     parser.add_argument('--output_dim', type=int, default=2)
-    parser.add_argument('--output_modes_locs', default = 1.5, type=float)
+    parser.add_argument('--output_modes_locs', default = 3, type=float)
     parser.add_argument('--output_modes', type=int, default=1)
     #variance of each mode of the Gaussian mixture
-    parser.add_argument('--out_var', type=float, default=0.1)
+    parser.add_argument('--out_var', type=float, default=0.01)
     #dim of the latent space
     parser.add_argument('--z_dim', type=int, default=1)
     #law of the latent random variable
@@ -125,9 +125,8 @@ if config.dataset == 'synthetic':
 
 elif config.dataset == "synthetic_simplex":
     config.output_dim = config.output_modes
-    modes = np.arange(config.output_modes)
-    config.means_mixture = np.zeros((modes.size, modes.max()+1))
-    config.means_mixture[np.arange(modes.size), modes] = 1
+    #modes = np.arange(config.output_modes)
+    config.means_mixture = config.output_modes_locs*np.eye(config.output_modes)
     config.weights_mixture = np.ones(config.output_modes)/config.output_modes
     if config.training_mode=="training":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
@@ -183,6 +182,7 @@ for s in range(config.steps_gan):
             if (config.output_dim==2):
                 plot_densities(config, generator)
                 plot_densities_middle_points(config, generator)
+            if (config.output_dim==2) and (config.z_dim==2):
                 plot_heatmap_of_the_discriminator(discriminator, config)
 
         config.num_pics += 1
