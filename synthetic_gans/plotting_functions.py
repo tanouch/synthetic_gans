@@ -106,7 +106,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
             else:
                 print("No colors defined per classes")
                 return
-            ax.imshow(np.transpose(classes), cmap=listed_cmap, origin='lower')
+            ax.imshow(classes, cmap=listed_cmap, origin='lower')
         ax.set_aspect('equal', 'datalim')
         plt.margins(0,0)
         ax.grid(False)
