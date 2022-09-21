@@ -1,4 +1,3 @@
-from turtle import distance
 from my_imports import *
 from matplotlib import colors
 from tools import convert_to_gpu
