@@ -63,6 +63,7 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
     ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
 
     if z_means is not None:
+        plt.scatter(0, 0, s=50,  alpha=1., c="k")
         plt.scatter(z_means[:,0], z_means[:,1], s=50,  alpha=1., c="g")
 
     ax.set_aspect('equal', 'datalim')
@@ -94,6 +95,24 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
     config.z_dim = z.shape[1]
     gz = generator(z)
     gz = gz.view(gz.shape[0], -1).detach().cpu().numpy()
+    z = z.detach().numpy()
+    norm, classes = calculate_distance_to_nearest_point(gz, config)
+    if config.z_dim==2:
+        norm = norm.reshape(num_points, num_points)
+        classes = classes.reshape(num_points, num_points)
+    if config.z_dim==1:
+        norm = np.tile(norm, (len(norm), 1))
+        classes = np.tile(classes, (len(classes), 1))
+
+    z_Kmeans = list()
+    for this_class in classes:
+        indexes = np.where(classes==this_class)[0]
+        z_this_class = z[indexes]
+        z_mean = np.mean(z_this_class, axis=0)
+        z_mean /= np.linalg.norm(z_mean)
+        z_Kmeans.append(z_mean)
+    z_Kmeans = np.array(z_Kmeans)
+    print('zmeansBIS', z_Kmeans)
 
     def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
@@ -115,14 +134,6 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".png", bbox_inches="tight", pad_inches = 0)
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
         plt.close()
-
-    norm, classes = calculate_distance_to_nearest_point(gz, config)
-    if config.z_dim==2:
-        norm = norm.reshape(num_points, num_points)
-        classes = classes.reshape(num_points, num_points)
-    if config.z_dim==1:
-        norm = np.tile(norm, (len(norm), 1))
-        classes = np.tile(classes, (len(classes), 1))
 
     plot_some_graph(norm, np.amin(norm), np.amax(norm), classes, "distance_nearest_points_", method="distance")
     plot_some_graph(norm, np.amin(norm), np.amax(norm), classes, "class_nearest_points_", method="class")

@@ -145,7 +145,6 @@ def knn_scores(generator, config):
     z = generate_z(config.num_points_plotted, config.z_var, config)
     gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
     z = z.detach().numpy()
-    print(z.shape)
 
     #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
@@ -159,7 +158,6 @@ def knn_scores(generator, config):
         z_this_class = z[indexes]
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
-        print('this class shape', z_this_class.shape, z_mean.shape)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
     print('zmeans', z_Kmeans)
