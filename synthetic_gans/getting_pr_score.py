@@ -163,8 +163,6 @@ def knn_scores(generator, config):
     distances_means = distance_matrix(z_Kmeans, z_Kmeans)
     distances_means = np.array([distances_means[i,j] for i in range(len(z_Kmeans)) for j in range(i+1, len(z_Kmeans))])
     simplicial_ratio = np.var(distances_means)/np.mean(distances_means)
-    print(distances_means)
-    print(np.mean(distances_means), np.var(distances_means))
     #print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
@@ -181,4 +179,5 @@ def knn_scores(generator, config):
         lengths.append(len(classes_these_indexes))
     KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
     print('knn_acc', KNNacc)
+    print('simplicial_ratio', simplicial_ratio)
     return (KNNacc, simplicial_ratio)

@@ -175,10 +175,10 @@ for s in range(config.steps_gan):
 
         if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
             get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, step=s, config=config)
-            z_means = knn_scores(generator, config)
+            knn_scores(generator, config)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
-                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75, z_means=z_means)
+                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75)
             if (config.output_dim==2):
                 plot_densities(config, generator)
                 plot_densities_middle_points(config, generator)
