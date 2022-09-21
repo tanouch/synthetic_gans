@@ -163,7 +163,6 @@ def knn_scores(generator, config):
     print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
-    print(z.shape, z_Kmeans.shape)
     _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=z_Kmeans)
 
     #4 Compute the proportion of similarity in the classes !
