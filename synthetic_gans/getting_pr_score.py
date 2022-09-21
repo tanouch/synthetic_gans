@@ -156,14 +156,12 @@ def knn_scores(generator, config):
     z = z.detach().numpy()
     #1 Get the classes from (Gz) the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
-    #print('diff classes', np.unique(classes))
 
     #2 Get the mean of these classes in the latent space
     z_Kmeans = list()
     for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
-        #print(z_this_class[:10])
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
@@ -171,7 +169,6 @@ def knn_scores(generator, config):
     distances_means = distance_matrix(z_Kmeans, z_Kmeans)
     distances_means = np.array([distances_means[i,j] for i in range(len(z_Kmeans)) for j in range(i+1, len(z_Kmeans))])
     simplicial_ratio = np.var(distances_means)/np.mean(distances_means)
-    #print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
     _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=z_Kmeans)
@@ -180,10 +177,9 @@ def knn_scores(generator, config):
     accuracies, lengths = list(), list()
     for this_class in np.unique(classes):
         indexes = np.where(classes_z_Kmeans==this_class)[0]
-        #z_these_indexes = z[indexes]
-        #print(z_these_indexes[:10])
         classes_these_indexes = classes[indexes]
-        accuracies.append(np.amax(np.bincount(classes_these_indexes))/len(classes_these_indexes))
-        lengths.append(len(classes_these_indexes))
+        if len(classes_these_indexes)>0:
+            accuracies.append(np.amax(np.bincount(classes_these_indexes))/len(classes_these_indexes))
+            lengths.append(len(classes_these_indexes))
     KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
     return (KNNacc, simplicial_ratio)
