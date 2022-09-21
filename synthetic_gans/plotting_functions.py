@@ -43,7 +43,7 @@ def calculate_norm(input_data, output, net, sigma, input_dim, nb_estimations, nu
         norm_gradients = np.tile(norm_gradients, (len(norm_gradients), 1))
     return norm_gradients, min_ngrad, max_ngrad
 
-def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_points=100):
+def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_points=100, z_means=None):
     if not os.path.exists(config.name_exp+'/gradients'):
         os.makedirs(config.name_exp+'/gradients')
     xmin, xmax, ymin, ymax = -span_length, span_length, -span_length, span_length
@@ -60,6 +60,8 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
                                       input_dim=config.z_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
     _, ax = plt.subplots()
+    if z_means is not None:
+        plt.scatter(z_means[:,0], z_means[:,1], s=10,  alpha=0.5, c="g")
     ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)

@@ -22,7 +22,8 @@ def get_config():
 
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
     parser.add_argument("--gen_type", type = str, default='simple')
-    parser.add_argument("--disc_type", type = str, default='simpleReLU')
+    parser.add_argument("--disc_type", type = str, default='simple')
+    parser.add_argument("--activation_function", type = str, default='gelu')
     parser.add_argument("--gen_lr", type = float, default=0.0005)
     parser.add_argument("--disc_lr", type = float, default=0.001)
     parser.add_argument("--iw_lr", type = float, default=0.001)
@@ -140,7 +141,7 @@ if config.gen_type=="simple":
 else:
     generator = convert_to_gpu(Generator_mnist(config), config)
 
-if config.disc_type=="simpleReLU":
+if config.disc_type=="simple":
     discriminator = convert_to_gpu(Discriminator(config), config)
 elif config.disc_type=="mnist":
     discriminator = convert_to_gpu(Discriminator_mnist(config), config)
@@ -173,10 +174,10 @@ for s in range(config.steps_gan):
 
         if config.dataset == 'synthetic' or config.dataset == 'synthetic_simplex':
             get_scores_and_plot_graphs(config.metrics, generator, metric_score="L2", mode=config.training_mode, step=s, config=config)
-            knn_scores(generator, config)
+            z_means = knn_scores(generator, config)
             if (config.z_dim==2) or (config.z_dim==1):
                 plot_heatmap_nearest_point(generator, config, span_length=config.z_var*1.5)
-                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75)
+                plot_gradient_of_the_generator(generator, config, span_length=config.z_var*1.75, z_means=z_means)
             if (config.output_dim==2):
                 plot_densities(config, generator)
                 plot_densities_middle_points(config, generator)

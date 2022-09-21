@@ -161,10 +161,11 @@ def knn_scores(generator, config):
         z_mean /= np.linalg.norm(z_mean)
         print('this class shape', z_this_class.shape, z_mean.shape)
         z_Kmeans.append(z_mean)
+    z_Kmeans = np.array(z_Kmeans)
     print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
-    _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=np.array(z_Kmeans))
+    _, classes_z_Kmeans = calculate_distance_to_nearest_point(z, config, real_data=z_Kmeans)
 
     #4 Compute the proportion of similarity in the classes !
     accuracies, lengths = list(), list()
@@ -175,3 +176,4 @@ def knn_scores(generator, config):
         lengths.append(len(classes_means_this_class))
     KNNacc = np.mean(np.multiply(accuracies,lengths))/np.sum(lengths)
     print('KNN acc', KNNacc)
+    return z_Kmeans

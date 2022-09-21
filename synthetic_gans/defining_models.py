@@ -18,13 +18,17 @@ class Importance_weighter(nn.Module):
     def forward(self, x):
         w = self.linear(x)
         return w
-        
+
 
 class Generator(nn.Module):
     def __init__(self, config):
         super(Generator, self).__init__()
-        array = [nn.Linear(config.z_dim, config.g_width), nn.ReLU()]
-        array += [nn.Linear(config.g_width, config.g_width), nn.ReLU()]*(config.g_depth-1)
+        if config.activation_function=="GeLU":
+            activation = nn.GELU()
+        elif config.activation_function=="ReLU":
+            activation = nn.ReLU()
+        array = [nn.Linear(config.z_dim, config.g_width), activation]
+        array += [nn.Linear(config.g_width, config.g_width), activation]*(config.g_depth-1)
         array += [nn.Linear(config.g_width, config.output_dim)]
         self.linear = nn.Sequential(*array)
 
@@ -39,31 +43,31 @@ class Discriminator(nn.Module):
         array += [nn.Linear(config.d_width, config.d_width), MaxMin(num_units=config.d_width/2)]*(config.d_depth-1)
         array += [nn.Linear(config.d_width, 1)]
         self.linear = nn.Sequential(*array)
-            
+
     def forward(self, x):
         return self.linear(x)
 
 class Discriminator_bjorckReLU(nn.Module):
     def __init__(self, config, cuda=False):
         super(Discriminator_bjorckReLU, self).__init__()
-        config_bjorck = Munch.fromDict(dict(cuda=cuda, model=dict(linear=dict(bjorck_beta=0.5, bjorck_iter=4, bjorck_order=1, safe_scaling=True))))        
+        config_bjorck = Munch.fromDict(dict(cuda=cuda, model=dict(linear=dict(bjorck_beta=0.5, bjorck_iter=4, bjorck_order=1, safe_scaling=True))))
         array = [BjorckLinear(config.output_dim, config.d_width, config=config_bjorck), nn.ReLU()]
         array += [BjorckLinear(config.d_width, config.d_width, config=config_bjorck), nn.ReLU()]*(config.d_depth-1)
         array += [BjorckLinear(config.d_width, 1, config=config_bjorck)]
         self.linear = nn.Sequential(*array)
-            
+
     def forward(self, x):
         return self.linear(x)
 
 class Discriminator_bjorckGroupSort(nn.Module):
     def __init__(self, config, cuda=False):
         super(Discriminator_bjorckGroupSort, self).__init__()
-        config_bjorck = Munch.fromDict(dict(cuda=cuda, model=dict(linear=dict(bjorck_beta=0.5, bjorck_iter=3, bjorck_order=1, safe_scaling=True))))        
+        config_bjorck = Munch.fromDict(dict(cuda=cuda, model=dict(linear=dict(bjorck_beta=0.5, bjorck_iter=3, bjorck_order=1, safe_scaling=True))))
         array = [BjorckLinear(config.output_dim, config.d_width, config=config_bjorck), MaxMin(num_units=config.d_width/2)]
         array += [BjorckLinear(config.d_width, config.d_width, config=config_bjorck), MaxMin(num_units=config.d_width/2)]*(config.d_depth-1)
         array += [BjorckLinear(config.d_width, 1, config=config_bjorck)]
         self.linear = nn.Sequential(*array)
-            
+
     def forward(self, x):
         #return self.linear(x)
         return torch.clamp(self.linear(x), min=-100., max=100.0)
@@ -93,7 +97,7 @@ def cal_gradient_penalty(netD, real_data, fake_data, device, type='mixed', const
         else:
             raise NotImplementedError('{} not implemented'.format(type))
         interpolatesv.requires_grad_(True)
-        
+
         disc_interpolates = netD(interpolatesv)
         gradients = torch.autograd.grad(outputs=disc_interpolates, inputs=interpolatesv,
                                         grad_outputs=convert_to_gpu(torch.ones(disc_interpolates.size()), config),
@@ -111,7 +115,7 @@ def cal_gradient_penalty_generator(netG, gz, z, constant=10.0, config = None):
     gradients = gradients[0].view(gz.size(0), -1)
     gradient_penalty = (torch.clamp(((gradients + 1e-16).norm(2, dim=1) - constant), max=0.0) ** 2).mean()
     return gradient_penalty
-    
+
 
 class Classifier_mnist(nn.Module):
     def __init__(self, config):
@@ -231,7 +235,7 @@ class Discriminator_mnist(nn.Module):
         self.linear = nn.Sequential(
             nn.Linear(64*7*7,1)
         )
-        
+
     def forward(self, x):
         x = self.conv(x)
         x = x.view(x.shape[0], -1)
