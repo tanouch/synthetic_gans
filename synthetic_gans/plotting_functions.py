@@ -96,14 +96,8 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
     gz = generator(z)
     gz = gz.view(gz.shape[0], -1).detach().cpu().numpy()
     z = z.detach().cpu().numpy()
-    norm, classes = calculate_distance_to_nearest_point(gz, config)
-    if config.z_dim==2:
-        norm = norm.reshape(num_points, num_points)
-        classes = classes.reshape(num_points, num_points)
-    if config.z_dim==1:
-        norm = np.tile(norm, (len(norm), 1))
-        classes = np.tile(classes, (len(classes), 1))
 
+    norm, classes = calculate_distance_to_nearest_point(gz, config)
     z_Kmeans = list()
     for this_class in np.unique(classes):
         indexes = np.where(classes==this_class)[0]
@@ -112,8 +106,17 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
-    print("meaaan", np.mean(z, axis=0))
+    print("meanBIS", np.mean(z, axis=0))
     print('zmeansBIS', z_Kmeans)
+
+    if config.z_dim==2:
+        norm = norm.reshape(num_points, num_points)
+        classes = classes.reshape(num_points, num_points)
+    if config.z_dim==1:
+        norm = np.tile(norm, (len(norm), 1))
+        classes = np.tile(classes, (len(classes), 1))
+
+
 
     def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
