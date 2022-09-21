@@ -44,7 +44,7 @@ def get_config():
     parser.add_argument('--metrics', default = 'prec,rec,emd,hausd,emp_hausd', type=str)
     parser.add_argument('--plot_config', default = True, type=bool)
     parser.add_argument('--num_runs', default=1, type=int)
-    parser.add_argument('--num_points_plotted', type=int, default=500)
+    parser.add_argument('--num_points_plotted', type=int, default=1000)
 
     #TRUE DIST
     #size of the training dataset: in few shot learning, we must have (real_dataset_size==output_modes)
