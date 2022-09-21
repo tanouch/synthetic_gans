@@ -145,7 +145,6 @@ def knn_scores(generator, config):
     z = generate_z(config.num_points_plotted, config.z_var, config)
     gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
     z = z.detach().numpy()
-
     print(z.shape)
 
     #1 Get the classes from (Gz) the position in the output space
@@ -162,7 +161,6 @@ def knn_scores(generator, config):
         z_mean /= np.linalg.norm(z_mean)
         print('this class shape', z_this_class.shape, z_mean.shape)
         z_Kmeans.append(z_mean)
-
     print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
