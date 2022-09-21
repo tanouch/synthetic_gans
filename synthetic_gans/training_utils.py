@@ -9,7 +9,7 @@ def train_discriminator(discriminator, generator, d_optimizer, step, config):
     gz = convert_to_gpu(generator(z), config)
     d_fake = discriminator(gz)
     real_data = generate_real_data(config.batch_size, config, config.training_mode)
-    if config.disc_type=='simpleReLU' or config.disc_type=='bjorckGroupSort':
+    if config.disc_type=='simple' or config.disc_type=='bjorckGroupSort':
         real_data = real_data.view(config.batch_size, -1)
     else:
         real_data = real_data.view(config.batch_size, 1, 28, 28)
@@ -26,12 +26,12 @@ def train_discriminator(discriminator, generator, d_optimizer, step, config):
         ones = convert_to_gpu((torch.FloatTensor([1])).expand_as(d_real), config)
         loss = nn.BCEWithLogitsLoss()(d_real - d_fake,ones)
     elif config.loss_type == 'wgan-gp':
-        if config.disc_type == "simpleReLU" or config.disc_type == "mnist":
+        if config.disc_type == "simple" or config.disc_type == "mnist":
             gradient_penalty, gradients = cal_gradient_penalty(discriminator, real_data, gz, 0, config = config)
             loss = d_fake.mean() - d_real.mean() + gradient_penalty
         else:
             loss = d_fake.mean() - d_real.mean()
-    
+
     d_optimizer.zero_grad()
     loss.backward()
     d_optimizer.step()
@@ -43,19 +43,19 @@ def train_discriminator_with_importance_weights(discriminator, generator, import
     wz = importance_weighter(z)
     d_fake = discriminator(gz)
     real_data = generate_real_data(config.batch_size, config, config.training_mode)
-    if config.disc_type=='simpleReLU' or config.disc_type=='bjorckGroupSort':
+    if config.disc_type=='simple' or config.disc_type=='bjorckGroupSort':
         real_data = real_data.view(config.batch_size, -1)
     else:
         real_data = real_data.view(config.batch_size, 1, 28, 28)
     real_data = convert_to_gpu(real_data, config)
     d_real = discriminator(real_data)
 
-    if config.disc_type == "simpleReLU" or config.disc_type == "mnist":
+    if config.disc_type == "simple" or config.disc_type == "mnist":
         gradient_penalty, _ = cal_gradient_penalty(discriminator, real_data, gz, 0, config = config)
         loss = (wz*d_fake).mean() - d_real.mean() + gradient_penalty
     else:
         loss = (wz*d_fake).mean() - d_real.mean()
-    
+
     d_optimizer.zero_grad()
     loss.backward()
     d_optimizer.step()
@@ -66,7 +66,7 @@ def train_generator(discriminator, generator, g_optimizer, step, config):
     z.requires_grad_(True)
     gz = generator(z)
     d_fake = discriminator(gz)
-    
+
     if config.loss_type == 'hinge':
         loss = - d_fake.mean()
     elif config.loss_type == 'vanilla':
@@ -81,7 +81,7 @@ def train_generator(discriminator, generator, g_optimizer, step, config):
         loss = - d_fake.mean()
         #gradient_penalty = cal_gradient_penalty_generator(generator, gz, z, constant=2., config=config)
         #loss += gradient_penalty
-    
+
     g_optimizer.zero_grad()
     loss.backward()
     g_optimizer.step()
@@ -92,7 +92,7 @@ def train_importance_weighter(discriminator, generator, importance_weighter, iw_
     gz = generator(z)
     wz = importance_weighter(z)
     d_fake = discriminator(gz)
-    
+
     if config.loss_type == 'hinge':
         loss = - (wz*d_fake).mean()
     elif config.loss_type == 'vanilla':
@@ -107,7 +107,7 @@ def train_importance_weighter(discriminator, generator, importance_weighter, iw_
         loss = nn.BCEWithLogitsLoss()(d_fake - d_real,ones)
     elif config.loss_type == 'wgan-gp':
         loss_emd = (-(wz*(d_fake-min(d_fake))).mean())
-    
+
     loss_reg = config.iw_regul_weight*(torch.pow((wz.mean() - 1), 2) + nn.ReLU()(wz-5).mean())
     loss = loss_emd + loss_reg
     if step%100000==0:
