@@ -23,7 +23,7 @@ def get_config():
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
     parser.add_argument("--gen_type", type = str, default='simple')
     parser.add_argument("--disc_type", type = str, default='simple')
-    parser.add_argument("--activation_function", type = str, default='gelu')
+    parser.add_argument("--activation_function", type = str, default='relu')
     parser.add_argument("--gen_lr", type = float, default=0.0005)
     parser.add_argument("--disc_lr", type = float, default=0.001)
     parser.add_argument("--iw_lr", type = float, default=0.001)
