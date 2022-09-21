@@ -80,10 +80,7 @@ def calculate_distance_to_nearest_point(output, config, real_data=None):
             real_data = config.real_dataset
         else:
             real_data = config.means_mixture
-    print("Here")
-    print(output.shape, real_data.shape)
     distances = distance_matrix(output, real_data)
-    print(distances.shape)
     matrix_distances = np.amin(distances, axis=1)
     classes = np.argmin(distances, axis=1)
     return matrix_distances, classes
