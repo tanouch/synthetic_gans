@@ -142,6 +142,7 @@ else:
     generator = convert_to_gpu(Generator_mnist(config), config)
 
 if config.disc_type=="simple":
+    print(config.output_dim)
     discriminator = convert_to_gpu(Discriminator(config), config)
 elif config.disc_type=="mnist":
     discriminator = convert_to_gpu(Discriminator_mnist(config), config)
