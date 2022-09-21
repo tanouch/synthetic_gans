@@ -1,6 +1,6 @@
 from my_imports import *
 from tools import convert_to_gpu
-from generating_data import generate_z, generate_real_data, rank_by_discriminator
+from generating_data import generate_z, generate_real_data
 from plotting_functions import calculate_distance_to_nearest_point
 
 def get_conf_int(data):
@@ -160,6 +160,10 @@ def knn_scores(generator, config):
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
+    distances_means = distance_matrix(z_Kmeans)
+    distances_means = np.array([distances_means[i,j] for i in range(len(z_Kmeans)) for j in range(i+1, len(z_Kmeans))])
+    print(distances_means)
+    print(np.mean(distances_means), np.var(distances_means))
     #print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
