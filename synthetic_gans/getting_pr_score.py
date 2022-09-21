@@ -158,7 +158,7 @@ def knn_scores(generator, config):
         z_mean = np.mean(z_this_class, axis=0)
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
-    z_Kmeans = np.transpose(np.array(z_Kmeans))
+    z_Kmeans = np.array(z_Kmeans)
     print('zmeans', z_Kmeans)
 
     #3 Get the classes from (z) the position in the latent space
