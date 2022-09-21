@@ -75,8 +75,8 @@ def calculate_distance_to_nearest_point(output, config, real_data=None):
             real_data = config.real_dataset
         else:
             real_data = config.means_mixture
-    matrix_distances = np.amin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
-    classes = np.argmin(distance_matrix(output.detach().cpu().numpy(), real_data), axis=1)
+    matrix_distances = np.amin(distance_matrix(output, real_data), axis=1)
+    classes = np.argmin(distance_matrix(output, real_data), axis=1)
     return matrix_distances, classes
 
 def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=250):
@@ -89,7 +89,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
     z = convert_to_gpu(torch.from_numpy(z).float(), config)
     config.z_dim = z.shape[1]
     gz = generator(z)
-    gz = gz.view(gz.shape[0], -1)
+    gz = gz.view(gz.shape[0], -1).detach().cpu().numpy()
 
     def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
