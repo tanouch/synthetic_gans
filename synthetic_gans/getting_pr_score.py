@@ -145,16 +145,25 @@ def knn_scores(generator, config):
     z = generate_z(config.num_points_plotted, config.z_var, config)
     gz = generator(convert_to_gpu(z, config)).detach().cpu().numpy()
     z = z.detach().numpy()
+    print(z.shape)
+
+    #1 Get the classes from the position in the output space
     _, classes = calculate_distance_to_nearest_point(gz, config)
     different_classes = np.unique(classes)
 
+    #2 Get the mean of these classes in the latent space
     z_Kmeans = list()
     for this_class in different_classes:
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
-        z_Kmeans.append(np.mean(z_this_class, axis=0))
+        z_mean = np.mean(z_this_class, axis=0)
+        #z_mean /= np.linalg.norm(z_mean)
+        z_Kmeans.append(z_mean)
+
+    #3 Get the classes from the position in the latent space
     _, classes_z_Kmeans = calculate_distance_to_nearest_point(gz, config, real_data=np.array(z_Kmeans))
 
+    #4 Compute the proportion of similarity in the classes !
     accuracies, lengths = list(), list()
     for this_class in different_classes:
         indexes = np.where(classes==this_class)[0]
