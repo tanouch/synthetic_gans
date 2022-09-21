@@ -153,6 +153,13 @@ def knn_scores(generator, config):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
         means.append(np.mean(z_this_class, axis=0))
-
     _, classes_means = calculate_distance_to_nearest_point(gz, config, real_data=np.array(means))
-    print('KNN acc', np.mean(np.equal(classes,classes_means)))
+
+    accuracies, lengths = list(), list()
+    for this_class in different_classes:
+        indexes = np.where(classes==this_class)[0]
+        classes_means_this_class = classes_means[indexes]
+        accuracies.append(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
+        lengths.append(len(classes_means_this_class))
+
+    print('KNN acc', np.mean(np.multiply(accuracies,lengths)))
