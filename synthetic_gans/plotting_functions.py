@@ -115,7 +115,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
         plt.close()
 
-    norm, classes = calculate_distance_to_nearest_point(gz, num_points, config)
+    norm, classes = calculate_distance_to_nearest_point(gz, config)
     if config.z_dim==2:
         norm = norm.reshape(num_points, num_points)
         classes = classes.reshape(num_points, num_points)
