@@ -70,7 +70,7 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
     plt.close()
 
 def calculate_distance_to_nearest_point(output, config, real_data=None):
-    if real_data==None:
+    if real_data is None:
         if config.training_mode=="training":
             real_data = config.real_dataset
         else:
