@@ -112,6 +112,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
+    print("meaaan", np.mean(z, axis=0))
     print('zmeansBIS', z_Kmeans)
 
     def plot_some_graph(norm, minn, maxx, classes, name, method):
@@ -202,8 +203,8 @@ def plot_heatmap_of_the_discriminator(discriminator, config, num_points=100):
     minn, maxx = min(dx), max(dx)
     dx = dx.reshape(num_points, num_points)
     plt.clf()
-    fig, ax = plt.subplots()
-    c = ax.pcolormesh(Xgrid, Ygrid, dx, vmin=minn, vmax=maxx, cmap='coolwarm')
+    _, ax = plt.subplots()
+    ax.pcolormesh(Xgrid, Ygrid, dx, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
