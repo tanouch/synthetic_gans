@@ -235,7 +235,7 @@ def plot_densities(config, generator=None):
     fig, ax = plt.subplots()
     plt.figure(frameon=False)
     plt.scatter(gz_np[:,0], gz_np[:,1], s=3,  alpha=0.25, c="c")
-    if config.real_colors is not None:
+    if (config.real_colors is not None) and (config.training_mode=="training"):
         for i in range(len(emp_np)):
             plt.scatter(emp_np[i][0], emp_np[i][1], s=75, alpha=0.85, c=config.real_colors[i])
     else:
