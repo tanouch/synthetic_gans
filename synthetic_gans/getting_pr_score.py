@@ -173,6 +173,6 @@ def knn_scores(generator, config):
         print(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
         accuracies.append(np.amax(np.bincount(classes_means_this_class))/len(classes_means_this_class))
         lengths.append(len(classes_means_this_class))
-    KNNacc = np.mean(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
+    KNNacc = np.sum(np.multiply(np.array(accuracies), np.array(lengths)))/np.sum(np.array(lengths))
     print('KNN acc', KNNacc)
     return z_Kmeans
