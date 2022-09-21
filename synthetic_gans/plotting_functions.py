@@ -60,9 +60,10 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
                                       input_dim=config.z_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
     _, ax = plt.subplots()
-    if z_means is not None:
-        plt.scatter(z_means[:,0], z_means[:,1], s=10,  alpha=0.5, c="g")
     ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+
+    if z_means is not None:
+        plt.scatter(z_means[:,0], z_means[:,1], s=20,  alpha=0.9, c="g")
     ax.set_aspect('equal', 'datalim')
     plt.margins(0,0)
     ax.grid(False)
