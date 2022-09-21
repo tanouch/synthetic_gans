@@ -60,7 +60,7 @@ def plot_gradient_of_the_generator(generator, config, span_length=2.5, num_point
                                       input_dim=config.z_dim, nb_estimations=10, num_points=num_points, config=config, matrix="jacobian")
     plt.clf()
     _, ax = plt.subplots()
-    ax.pcolormesh(Xgrid, Ygrid, np.transpose(norm), vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
+    ax.pcolormesh(Xgrid, Ygrid, norm, vmin=minn, vmax=maxx, cmap='coolwarm', shading='auto')
 
     if z_means is not None:
         plt.scatter(z_means[:,0], z_means[:,1], s=50,  alpha=1., c="g")
@@ -106,7 +106,7 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
             else:
                 print("No colors defined per classes")
                 return
-            ax.imshow(classes, cmap=listed_cmap)
+            ax.imshow(np.transpose(classes), cmap=listed_cmap)
         ax.set_aspect('equal', 'datalim')
         plt.margins(0,0)
         ax.grid(False)
