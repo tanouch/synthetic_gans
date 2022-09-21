@@ -116,8 +116,6 @@ def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=25
         norm = np.tile(norm, (len(norm), 1))
         classes = np.tile(classes, (len(classes), 1))
 
-
-
     def plot_some_graph(norm, minn, maxx, classes, name, method):
         plt.clf()
         _, ax = plt.subplots()
