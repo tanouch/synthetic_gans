@@ -1,4 +1,5 @@
 from my_imports import *
+import os, sys
 
 def convert_to_gpu(data, config):
     if config.use_gpu:
@@ -37,3 +38,18 @@ def weights_init(m):
         #nn.init.zero_(m.weight)
         #nn.init.eye_(m.weight)
         #nn.init.orthogonal_(m.weight)
+
+def read_results(folder):
+    list_files = os.listdir(folder)
+    results = dict()
+    for file in list_files:
+        if file.endswith(".txt"):
+            f = open (os.path.join(folder, file), "r")
+            data = json.loads(f.read())
+            precision = max([data[elem]['prec'][0] for elem in data.keys()])
+            knn_acc = max([data[elem]['knn'][0] for elem in data.keys()])
+            simplicial_ratio = max([data[elem]['knn'][1] for elem in data.keys()])
+            results[file] = [precision, knn_acc, simplicial_ratio]
+
+    print(results)
+    sys.exit()

@@ -4,7 +4,7 @@ from plotting_functions import plot_gradient_of_the_generator, plot_densities, p
     plot_heatmap_nearest_point, plot_densities_middle_points
 from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Generator_mnist, Discriminator_mnist
 from getting_pr_score import get_scores_and_plot_graphs
-from tools import convert_to_gpu
+from tools import convert_to_gpu, read_results
 from training_utils import train_discriminator, train_generator, save_models
 
 def get_config():
@@ -14,6 +14,7 @@ def get_config():
     parser.add_argument("--device_id", type = int,  default = 0)
     parser.add_argument('-b', '--batch_size', type=int, default=256)
     parser.add_argument("--use_gpu", action='store_true', help='shuffle input data')
+    parser.add_argument("--read_results", action='store_true', help='Do we read the results?')
     parser.add_argument("--spectral_normalization", action='store_true', help='shuffle input data')
     parser.add_argument("--spectral_normalization_iw", default=False, type=bool)
     parser.add_argument("--batch_norm_real_data", default=False, type=bool, help='batch norm input data')
@@ -84,6 +85,8 @@ def get_config():
 config = get_config()
 config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 config.results = dict()
+if config.read_results:
+    read_results()
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
