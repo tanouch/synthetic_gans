@@ -41,15 +41,18 @@ def weights_init(m):
 
 def read_results(folder):
     list_files = os.listdir(folder)
+    print(list_files)
     results = dict()
     for file in list_files:
-        if file.endswith(".txt"):
+        if file.endswith(".json"):
             f = open (os.path.join(folder, file), "r")
             data = json.loads(f.read())
             precision = max([data[elem]['prec'][0] for elem in data.keys()])
             knn_acc = max([data[elem]['knn'][0] for elem in data.keys()])
             simplicial_ratio = max([data[elem]['knn'][1] for elem in data.keys()])
             results[file] = [precision, knn_acc, simplicial_ratio]
-
-    print(results)
+    
+    for elem in sorted(list(results.keys())):
+        print(elem, results[elem])
+        print("")
     sys.exit()
