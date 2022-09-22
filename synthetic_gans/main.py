@@ -135,7 +135,7 @@ elif config.dataset == "synthetic_simplex":
         config.real_dataset, config.real_dataset_index = create_mixture_gaussian_dataset(config), 0
 
 else:
-    print("Not the right dataset")
+    print("Not the right dataset.")
     sys.exit()
 
 print(config, flush = True)
