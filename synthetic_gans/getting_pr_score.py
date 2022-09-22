@@ -163,7 +163,8 @@ def knn_scores(generator, config):
         indexes = np.where(classes==this_class)[0]
         z_this_class = z[indexes]
         z_mean = np.mean(z_this_class, axis=0)
-        z_mean /= np.linalg.norm(z_mean)
+        if (config.z_dim + 1 >= config.output_modes):
+            z_mean /= np.linalg.norm(z_mean)
         z_Kmeans.append(z_mean)
     z_Kmeans = np.array(z_Kmeans)
     distances_means = distance_matrix(z_Kmeans, z_Kmeans)
