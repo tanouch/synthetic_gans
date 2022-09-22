@@ -14,12 +14,13 @@ def get_config():
     parser.add_argument("--device_id", type = int,  default = 0)
     parser.add_argument('-b', '--batch_size', type=int, default=256)
     parser.add_argument("--use_gpu", action='store_true', help='shuffle input data')
-    parser.add_argument("--read_results", action='store_true', help='Do we read the results?')
     parser.add_argument("--spectral_normalization", action='store_true', help='shuffle input data')
     parser.add_argument("--spectral_normalization_iw", default=False, type=bool)
     parser.add_argument("--batch_norm_real_data", default=False, type=bool, help='batch norm input data')
     parser.add_argument('--steps_gan', type=int, default=20001)
     parser.add_argument('--steps_eval', type=int, default=1000)
+    parser.add_argument("--read_results", action='store_true', help='Do we read the results?')
+    parser.add_argument('--folder_results', default='rez', type=str)
 
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
     parser.add_argument("--gen_type", type = str, default='simple')
@@ -86,7 +87,7 @@ config = get_config()
 config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 config.results = dict()
 if config.read_results:
-    read_results()
+    read_results(config.folder_results)
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
