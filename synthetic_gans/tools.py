@@ -49,7 +49,7 @@ def read_results(folder):
             data = json.loads(f.read())
             recall = max([data[elem]['rec'][0] for elem in data.keys()])
             precision = max([data[elem]['prec'][0] for elem in data.keys()])
-            emd = min([data[elem]['rec'][0] for elem in data.keys()])
+            emd = min([data[elem]['emd'][0] for elem in data.keys()])
             knn_acc = max([data[elem]['knn'][0] for elem in data.keys()])
             simplicial_ratio = max([data[elem]['knn'][1] for elem in data.keys()])
             results[file] = [precision, recall, emd, knn_acc, simplicial_ratio]
