@@ -553,7 +553,7 @@ def plot_results():
 
     #### Synthetic CIFAR-10 #####
     latent_dim = [2,5,10,30,128]
-    prec = [2.4,51.0,49.2,79.1,71.6]
+    prec = [2.4,51.0,59.2,79.1,71.6]
     color = 'tab:blue'
     ax.semilogx(latent_dim, prec, 'P-', color=color, linewidth=1, label='Synthetic CIFAR-10')
     ax.set_xlabel('Latent dimension',fontsize=20)
