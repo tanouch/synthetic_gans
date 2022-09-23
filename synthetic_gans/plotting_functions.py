@@ -536,8 +536,7 @@ def plot_results_numberModes(results):
 
 def plot_results():
 
-    fig, ax = plt.subplots(figsize=(7,5), dpi=600)
-
+    _, ax = plt.subplots(figsize=(7,5), dpi=600)
     #### MNIST #####
     latent_dim = [2,4,6,8,10,12,16,32,64,128]
     prec = [0.9,47.9,76.3,81.3,89.0,92.3,92.2,91.8,90.1,91.6]
@@ -569,4 +568,4 @@ def plot_results():
     ax.tick_params(axis='y')
     ax.legend(loc='lower right',fontsize=15)
 
-    plt.show()
+    plt.savefig('figure')
