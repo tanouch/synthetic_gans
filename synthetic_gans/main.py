@@ -1,7 +1,7 @@
 from my_imports import *
 from generating_data import create_mixture_gaussian_dataset
 from plotting_functions import plot_gradient_of_the_generator, plot_densities, plot_heatmap_of_the_discriminator, \
-    plot_heatmap_nearest_point, plot_densities_middle_points
+    plot_heatmap_nearest_point, plot_densities_middle_points, plot_results
 from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Generator_mnist, Discriminator_mnist
 from getting_pr_score import get_scores_and_plot_graphs
 from tools import convert_to_gpu, read_results
@@ -87,7 +87,8 @@ config = get_config()
 config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 config.results = dict()
 if config.read_results:
-    read_results(config.folder_results)
+    results = read_results(config.folder_results)
+    plot_results(results)
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:

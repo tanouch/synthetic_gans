@@ -1,4 +1,5 @@
 from my_imports import *
+import matplotlib.pyplot as plt
 from matplotlib import colors
 from tools import convert_to_gpu
 from generating_data import generate_z, generate_real_data, rank_by_gradients, rank_by_discriminator
@@ -495,3 +496,39 @@ def plot_in_between_modes(generator, metric, config):
             arrowprops = dict(arrowstyle = '->', connectionstyle = 'arc3,rad=0'))
     plt.savefig(config.name_exp+"/position_data/position_data_"+str(config.num_pics)+"_"+metric, bbox_inches="tight")
     plt.savefig(config.name_exp+"/position_data/position_data_"+str(config.num_pics)+"_"+metric+".pdf", bbox_inches="tight")
+
+
+def plot_results(results):
+    fig, ax = plt.subplots(figsize=(7,5), dpi=600)
+
+    #### Z dim = 2 #####
+
+    n_class = [100,80,60,40,20,10,5]
+    prec = [85.3,87.0,88.5,89.3,88.4,93.7,93.9]
+
+    color = 'tab:brown'
+    ax.plot(n_class, prec,'o-', color=color, linewidth=2, label='dim(Z)=100')
+
+    ax.tick_params(axis='y')
+
+    #### Z dim = 6 #####
+    prec = [83.5,87.5,87.7,89.5,89.4,94.8,94.2]
+
+    color = 'tab:purple'
+    ax.plot(n_class, prec,'v-', color=color, linewidth=2, label='dim(Z)=50')
+
+    ax.tick_params(axis='y')
+
+    #### Z dim = 8 #####
+    prec = [72.8,79.2,86.5,87.9,89.5,93.3,94.6]
+
+    color = 'tab:olive'
+    ax.plot(n_class, prec,'>-',color=color, linewidth=2, label='dim(Z)=20')
+    ax.tick_params(axis='y')
+
+    ax.set_xlabel('Number of modes',fontsize=20)
+    ax.set_ylabel('Precision',fontsize=20)
+
+    ax.legend(loc='upper right',fontsize=15)
+
+    plt.show()
