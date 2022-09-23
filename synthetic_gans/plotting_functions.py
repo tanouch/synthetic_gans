@@ -498,7 +498,7 @@ def plot_in_between_modes(generator, metric, config):
     plt.savefig(config.name_exp+"/position_data/position_data_"+str(config.num_pics)+"_"+metric+".pdf", bbox_inches="tight")
 
 
-def plot_results(results):
+def plot_results_numberModes(results):
     fig, ax = plt.subplots(figsize=(7,5), dpi=600)
 
     #### Z dim = 2 #####
@@ -534,7 +534,7 @@ def plot_results(results):
     plt.show()
 
 
-def plot_results2():
+def plot_results():
 
     fig, ax = plt.subplots(figsize=(7,5), dpi=600)
 

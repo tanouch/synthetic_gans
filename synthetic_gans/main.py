@@ -20,6 +20,7 @@ def get_config():
     parser.add_argument('--steps_gan', type=int, default=20001)
     parser.add_argument('--steps_eval', type=int, default=1000)
     parser.add_argument("--read_results", action='store_true', help='Do we read the results?')
+    parser.add_argument("--plot_results", action='store_true', help='Do we plot the results?')
     parser.add_argument('--folder_results', default='rez', type=str)
 
     parser.add_argument("--loss_type", type = str, default = 'wgan-gp')
@@ -88,7 +89,8 @@ config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 config.results = dict()
 if config.read_results:
     results = read_results(config.folder_results)
-    plot_results(results)
+if config.plot_results:
+    plot_results()
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
