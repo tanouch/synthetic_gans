@@ -89,8 +89,10 @@ config.BCE = convert_to_gpu(nn.BCEWithLogitsLoss(), config)
 config.results = dict()
 if config.read_results:
     results = read_results(config.folder_results)
+    sys.exit()
 if config.plot_results:
     plot_results()
+    sys.exit()
 np.random.seed(config.seed)
 torch.manual_seed(config.seed)
 if config.output_modes != config.real_dataset_size:
