@@ -557,7 +557,7 @@ def plot_results():
     color = 'tab:blue'
     ax.semilogx(latent_dim, prec, 'P-', color=color, linewidth=1, label='Synthetic CIFAR-10')
     ax.set_xlabel('Latent dimension',fontsize=20)
-    ax.set_ylabel('Precision',fontsize=20)
+    ax.set_ylabel('Density',fontsize=20)
     ax.tick_params(axis='y')
 
     #### CIFAR100 #####
