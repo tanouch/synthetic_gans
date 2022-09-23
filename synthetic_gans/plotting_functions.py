@@ -532,3 +532,41 @@ def plot_results(results):
     ax.legend(loc='upper right',fontsize=15)
 
     plt.show()
+
+
+def plot_results2():
+
+    fig, ax = plt.subplots(figsize=(7,5), dpi=600)
+
+    #### MNIST #####
+    latent_dim = [2,4,6,8,10,12,16,32,64,128]
+    prec = [0.9,47.9,76.3,81.3,89.0,92.3,92.2,91.8,90.1,91.6]
+    color = 'tab:brown'
+    ax.semilogx(latent_dim, prec, 'o-', color=color, linewidth=1, label='MNIST')
+    ax.tick_params(axis='y')
+
+    #### CIFAR10 #####
+    latent_dim = [2,5,10,30,128]
+    prec = [1.8,51.0,65.8,76.6,76.3]
+    color = 'tab:olive'
+    ax.semilogx(latent_dim, prec, '<-',color=color, linewidth=1, label='CIFAR-10')
+    ax.tick_params(axis='y')
+
+    #### Synthetic CIFAR-10 #####
+    latent_dim = [2,5,10,30,128]
+    prec = [2.4,51.0,49.2,79.1,71.6]
+    color = 'tab:blue'
+    ax.semilogx(latent_dim, prec, 'P-', color=color, linewidth=1, label='Synthetic CIFAR-10')
+    ax.set_xlabel('Latent dimension',fontsize=20)
+    ax.set_ylabel('Precision',fontsize=20)
+    ax.tick_params(axis='y')
+
+    #### CIFAR100 #####
+    latent_dim = [2,5,10,30,64,128]
+    prec = [0.5,34.5,47.7,54.2,64,56.7]
+    color = 'tab:orange'
+    ax.semilogx(latent_dim, prec, '^-', color=color, linewidth=1, label='CIFAR-100')
+    ax.tick_params(axis='y')
+    ax.legend(loc='lower right',fontsize=15)
+
+    plt.show()
