@@ -86,6 +86,54 @@ def calculate_distance_to_nearest_point(output, config, real_data=None):
     classes = np.argmin(distances, axis=1)
     return matrix_distances, classes
 
+
+def plot_heatmap_nearest_point_target_distribution(config, num_points=250):
+    if not os.path.exists(config.name_exp+'/distance_nearest_points'):
+        os.makedirs(config.name_exp+'/distance_nearest_points')
+
+    real_data = config.means_mixture
+    xmin, xmax = [-3, 3] #np.amin([x[0] for x in real_data]), np.amax([x[0] for x in real_data])
+    ymin, ymax = [-3, 3] #np.amin([x[1] for x in real_data]), np.amax([x[1] for x in real_data])
+    Xgrid, Ygrid = np.meshgrid(np.linspace(xmin, xmax, num_points), np.linspace(ymin, ymax, num_points))
+    z = generate_grid_z(xmin, xmax, ymin, ymax, num_points, dim=2)
+    z = convert_to_gpu(torch.from_numpy(z).float(), config)
+    z = z.detach().cpu().numpy()
+
+    norm, classes = calculate_distance_to_nearest_point(z, config)
+    z_Kmeans = list()
+    for this_class in np.unique(classes):
+        indexes = np.where(classes==this_class)[0]
+        z_this_class = z[indexes]
+        z_mean = np.mean(z_this_class, axis=0)
+        z_mean /= np.linalg.norm(z_mean)
+        z_Kmeans.append(z_mean)
+    z_Kmeans = np.array(z_Kmeans)
+
+    if config.z_dim==2:
+        classes = classes.reshape(num_points, num_points)
+    
+    def plot_some_graph(classes, name, method):
+        plt.clf()
+        _, ax = plt.subplots()
+        if config.real_colors is not None:
+            listed_cmap = colors.ListedColormap(config.real_colors)
+        else:
+            print("No colors defined per classes")
+            return
+        ax.imshow(classes, cmap=listed_cmap, origin='lower')
+        ax.set_aspect('equal', 'datalim')
+        plt.margins(0,0)
+        ax.grid(False)
+        plt.axis('off')
+        emp_np = np.array(config.means_mixture)
+        plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".jpeg", bbox_inches="tight", pad_inches = 0)
+        plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".png", bbox_inches="tight", pad_inches = 0)
+        plt.savefig(config.name_exp+"/distance_nearest_points/"+name+str(config.num_pics)+".pdf", bbox_inches="tight", pad_inches = 0)
+        plt.close()
+
+    plot_some_graph(classes, "class_nearest_points_real_data_", method="class")
+
+
 def plot_heatmap_nearest_point(generator, config, span_length=2.5, num_points=250):
     if not os.path.exists(config.name_exp+'/distance_nearest_points'):
         os.makedirs(config.name_exp+'/distance_nearest_points')

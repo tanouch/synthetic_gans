@@ -1,7 +1,7 @@
 from my_imports import *
 from generating_data import create_mixture_gaussian_dataset
 from plotting_functions import plot_gradient_of_the_generator, plot_densities, plot_heatmap_of_the_discriminator, \
-    plot_heatmap_nearest_point, plot_densities_middle_points, plot_results
+    plot_heatmap_nearest_point, plot_densities_middle_points, plot_results, plot_heatmap_nearest_point_target_distribution
 from defining_models import Generator, Discriminator, Discriminator_bjorckGroupSort, Generator_mnist, Discriminator_mnist
 from getting_pr_score import get_scores_and_plot_graphs
 from tools import convert_to_gpu, read_results
@@ -107,7 +107,8 @@ if config.dataset == 'synthetic':
         if config.output_modes == 1:
             config.means_mixture = [[0, 0]]
         elif config.output_modes == 3: #triangle equilateral !
-            config.means_mixture = [[0, loc*1.732-1], [-loc, -1], [loc, -1]]
+            # config.means_mixture = [[-1, -0.25], [0, 0.], [1, -0.25]]
+            config.means_mixture = [[-1, -1], [0, 1.532], [1, -1]]
         elif config.output_modes == 4:
             config.means_mixture = [[-1*loc, 1*loc], [-1*loc, -1*loc], [1*loc, -1*loc], [1*loc, 1*loc]]
         elif config.output_modes == 5:
@@ -162,13 +163,14 @@ generator.train()
 g_optimizer = torch.optim.Adam(generator.parameters(), lr=config.gen_lr, betas=(0.5,0.5))
 discriminator.train()
 d_optimizer = torch.optim.Adam(discriminator.parameters(), lr=config.disc_lr, betas=(0.5,0.5))
+plot_heatmap_nearest_point_target_distribution(config, num_points=250)
 
 for s in range(config.steps_gan):
     for d in range(config.d_step):
         train_discriminator(discriminator, generator, d_optimizer, s, config)
     for g in range(config.g_step):
         train_generator(discriminator, generator, g_optimizer, s, config)
-
+    
     if s%config.steps_eval == 0 and s!= 0 :
         print('Steps', s)
         save_models(generator, s, "generator", config)
@@ -184,7 +186,7 @@ for s in range(config.steps_gan):
                 plot_densities_middle_points(config, generator)
             if (config.output_dim==2) and (config.z_dim==2):
                 plot_heatmap_of_the_discriminator(discriminator, config)
-
+                
         config.num_pics += 1
         print('____________________')
 
