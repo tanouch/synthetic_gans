@@ -15,32 +15,32 @@ Base of the code for the following publications:<br />
 --use-gpu (significant speed-up) if you have access to one.
 
 ### Others
---gen_lr, type = float, default=0.0025. <br />
+```--gen_lr, type = float, default=0.0025. <br />
 --disc_lr, type = float, default=0.0025. <br />
 --d_step, type=int, default=3.<br />
 --g_step, type=int, default=1.<br />
 --g_width, type=int, default=30.<br />
 --d_width, type=int, default=30.<br />
 --g_depth, type=int, default=2.<br />
---d_depth, type=int, default=5.<br />
+--d_depth, type=int, default=5.<br />```
 
 ### Regarding the latent distribution:
---z_dim, default=1<br />
+```--z_dim, default=1<br />
 --z_law, choices=('gauss', 'unif', 'circle'), default = 'unif'<br />
---z_var, default=1.0<br />
+--z_var, default=1.0<br />```
 
 ## Examples of some command runs:
 To train a WGANs on 4 data points, just run:
 python synthetic_gans/main.py --dataset synthetic --output_modes 4 --real_dataset_size 4 --z_dim 1 --name_exp 4modes_zdim1 --use_gpu
 
 ## Examples of some command runs on MNIST & others:
-`python mnist_generation.py --name mnist_2 --z_dim 2
+```python mnist_generation.py --name mnist_2 --z_dim 2
 python mnist_generation.py --name mnist_8 --z_dim 8
 python mnist_generation.py --name mnist_2 --z_dim 2 --dataset mnist_conditional
 python mnist_generation.py --name mnist_3 --z_dim 3 --dataset mnist_conditional
 python mnist_generation.py --name mnist_synthetic_2 --z_dim 2 --dataset synthetic_mnist_z2
 python mnist_generation.py --name mnist_synthetic_8 --z_dim 8 --dataset synthetic_mnist_z2
-python mnist_generation.py --name mnist_synthetic_16 --z_dim 16 --dataset synthetic_mnist_z2`
+python mnist_generation.py --name mnist_synthetic_16 --z_dim 16 --dataset synthetic_mnist_z2```
 
 
 ## Implementations for real-life GANs (proposed by lucidrains on Github):
